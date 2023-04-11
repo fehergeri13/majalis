@@ -4,15 +4,12 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 
-import { pusherWebClient } from "~/utils/pusher";
+import { hello, pusherWebClient } from "~/utils/pusher";
 import { PresenceChannel } from "pusher-js";
 
 
-const slug = "majalis";
-const channel = pusherWebClient.subscribe(slug)
-const presenceChannel = pusherWebClient.subscribe(
-  `presence-${slug}`
-) as PresenceChannel
+hello()
+
 
 
 const MyApp: AppType = ({ Component, pageProps }) => {
