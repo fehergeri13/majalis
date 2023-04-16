@@ -22,6 +22,17 @@ export const exampleRouter = createTRPCRouter({
     });
   }),
 
+  saveGameToken: publicProcedure
+    .input(z.object({ gameToken: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.loginSecrets.create({
+        data: {
+          name: "",
+          token: input.gameToken,
+        },
+      });
+    }),
+
   getAllSecret: publicProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.loginSecrets.findMany();
   }),

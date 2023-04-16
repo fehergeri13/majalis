@@ -10,7 +10,7 @@ const User: NextPage = () => {
   const router = useRouter();
   const userId = router.query.userId as string;
 
-  const { pusher, connect, isConnected } = usePusher(userId, userName, false);
+  const { pusher, connect, isConnected } = usePusher({ userId: userId, userName: userName, autoConnect: false });
   usePusherPresenceChannelStore(pusher, "presence-majalis");
   return (
     <>

@@ -7,18 +7,25 @@ import { useFactoryRef } from "~/utils/useFactoryRef";
 // Enable pusher logging - don't include this in production
 Pusher.logToConsole = true;
 
-export function usePusher(
-  userId: string | undefined,
-  userName: string | undefined,
-  autoConnect = true
-) {
+export function usePusher({
+  userId,
+  userName,
+  autoConnect = true,
+}: {
+  userId: string | undefined;
+  userName: string | undefined;
+  autoConnect?: boolean;
+}) {
   const [pusher, setPusher] = useState<null | Pusher>(null);
   const pusherRef = useRef<null | Pusher>(null);
   const [isConnected, setConnected] = useState(false);
 
   const connect = useCallback(() => {
     if (userId == null || userName == null || userName === "") {
-      console.warn("user_id or userName is empty", { user_id: userId, userName });
+      console.warn("user_id or userName is empty", {
+        user_id: userId,
+        userName,
+      });
       return;
     }
 
@@ -39,16 +46,16 @@ export function usePusher(
     });
 
     pusherClient.connection.bind("connected", () => {
-      setConnected(true)
-    })
+      setConnected(true);
+    });
 
     pusherClient.connection.bind("disconnected", () => {
-      setConnected(false)
-    })
+      setConnected(false);
+    });
 
     pusherClient.connection.bind_global((...args: any[]) => {
-      console.log("CON GLOBAL",args);
-    })
+      console.log("CON GLOBAL", args);
+    });
 
     pusherRef.current = pusherClient;
     setPusher(pusherClient);
