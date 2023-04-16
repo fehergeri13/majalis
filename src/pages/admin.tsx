@@ -2,6 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
 import { SecretPreview } from "~/pages/SecretPreview";
+import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
 
 const Admin: NextPage = () => {
   const secrets = api.example.getAllSecret.useQuery();
@@ -10,6 +11,9 @@ const Admin: NextPage = () => {
       await secrets.refetch();
     },
   });
+
+  const pusher = usePusher("admin")
+  const store = usePusherPresenceChannelStore(pusher, "presence-majalis")
 
   return (
     <>
@@ -31,6 +35,10 @@ const Admin: NextPage = () => {
         >
           Add secret
         </button>
+
+        <hr/>
+
+        {store.members.map(member => <div>member: {member}</div>)}
       </main>
     </>
   );
