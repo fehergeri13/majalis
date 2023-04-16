@@ -12,8 +12,8 @@ const Admin: NextPage = () => {
     },
   });
 
-  const pusher = usePusher("admin")
-  const store = usePusherPresenceChannelStore(pusher, "presence-majalis")
+  const { pusher } = usePusher("admin", "admin");
+  const store = usePusherPresenceChannelStore(pusher, "presence-majalis");
 
   return (
     <>
@@ -22,7 +22,7 @@ const Admin: NextPage = () => {
         <meta name="description" content="Majalis app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="">
+      <main className="p-4">
         Admin app secrets
         {secrets.data?.map((secret) => (
           <SecretPreview secret={secret} key={secret.id} />
@@ -35,14 +35,13 @@ const Admin: NextPage = () => {
         >
           Add secret
         </button>
-
-        <hr/>
-
-        {store.members.map(member => <div>member: {member}</div>)}
+        <hr />
+        {store.members.map((member) => (
+          <div key={member}>member: {member}</div>
+        ))}
       </main>
     </>
   );
 };
-
 
 export default Admin;

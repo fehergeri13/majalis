@@ -1,14 +1,9 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { pusherStore } from "~/utils/pusher";
-import { useStore } from "zustand";
 
 
 
 const Home: NextPage = () => {
-
-  const pusherState = useStore(pusherStore)
-
   return (
     <>
       <Head>
@@ -18,9 +13,6 @@ const Home: NextPage = () => {
       </Head>
       <main className="">
         Hello majalis
-
-        {pusherState.members.map((member) => <div key={member}>member: {member}</div>)}
-
         <button>hello</button>
       </main>
     </>
