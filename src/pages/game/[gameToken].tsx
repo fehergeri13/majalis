@@ -8,9 +8,9 @@ const User: NextPage = () => {
   const [userName, setUserName] = useState("");
 
   const router = useRouter();
-  const userId = router.query.userId as string;
+  const gameToken = router.query.gameToken as string;
 
-  const { pusher, connect, isConnected } = usePusher({ userId: userId, userName: userName, autoConnect: false });
+  const { pusher, connect, isConnected } = usePusher({ gameToken: gameToken, userName: userName, autoConnect: false });
   usePusherPresenceChannelStore(pusher, "presence-majalis");
   return (
     <>

@@ -8,11 +8,11 @@ import { useFactoryRef } from "~/utils/useFactoryRef";
 Pusher.logToConsole = true;
 
 export function usePusher({
-  userId,
+  gameToken,
   userName,
   autoConnect = true,
 }: {
-  userId: string | undefined;
+  gameToken: string | undefined;
   userName: string | undefined;
   autoConnect?: boolean;
 }) {
@@ -21,9 +21,9 @@ export function usePusher({
   const [isConnected, setConnected] = useState(false);
 
   const connect = useCallback(() => {
-    if (userId == null || userName == null || userName === "") {
-      console.warn("user_id or userName is empty", {
-        user_id: userId,
+    if (gameToken == null || userName == null || userName === "") {
+      console.warn("gameToken or userName is empty", {
+        gameToken: gameToken,
         userName,
       });
       return;
@@ -41,7 +41,7 @@ export function usePusher({
       channelAuthorization: {
         endpoint: "/api/pusher/auth-channel",
         transport: "ajax",
-        params: { user_id: userId, userName: userName },
+        params: { gameToken: gameToken, userName: userName },
       },
     });
 
@@ -59,7 +59,7 @@ export function usePusher({
 
     pusherRef.current = pusherClient;
     setPusher(pusherClient);
-  }, [pusher, userId, userName]);
+  }, [pusher, gameToken, userName]);
 
   useEffect(() => {
     if (autoConnect && pusher == null) {

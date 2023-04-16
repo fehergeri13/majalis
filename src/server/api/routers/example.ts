@@ -25,6 +25,7 @@ export const exampleRouter = createTRPCRouter({
   saveGameToken: publicProcedure
     .input(z.object({ gameToken: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      console.log("token created")
       return ctx.prisma.loginSecrets.create({
         data: {
           name: "",
@@ -32,6 +33,10 @@ export const exampleRouter = createTRPCRouter({
         },
       });
     }),
+
+  getToken: publicProcedure.input(z.object({ gameToken: z.union([z.string(), z.undefined()]) })).query(async ({ ctx, input }) => {
+    return await ctx.prisma.loginSecrets.findFirstOrThrow({where: {token:input.gameToken }});
+  }),
 
   getAllSecret: publicProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.loginSecrets.findMany();
