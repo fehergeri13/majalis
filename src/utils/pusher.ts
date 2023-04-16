@@ -1,4 +1,4 @@
-import Pusher, { PresenceChannel } from "pusher-js";
+import Pusher, { type PresenceChannel } from "pusher-js";
 import { env } from "~/env.mjs";
 import { createStore } from "zustand";
 
@@ -49,4 +49,6 @@ presenceChannel.bind('pusher:member_added', updateMembers)
 presenceChannel.bind('pusher:member_removed', updateMembers)
 
 
-export function hello() {}
+export function hello() {
+  return 1
+}

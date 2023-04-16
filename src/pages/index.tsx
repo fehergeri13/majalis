@@ -19,7 +19,7 @@ const Home: NextPage = () => {
       <main className="">
         Hello majalis
 
-        {pusherState.members.map(member => <div>member: {member}</div>)}
+        {pusherState.members.map((member) => <div key={member}>member: {member}</div>)}
 
         <button>hello</button>
       </main>

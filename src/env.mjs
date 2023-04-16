@@ -5,6 +5,7 @@ import { z } from "zod";
  * built with invalid env vars.
  */
 const server = z.object({
+  DATABASE_URL: z.string().url(),
   NODE_ENV: z.enum(["development", "test", "production"]),
   PUSHER_APP_ID: z.string().min(1),
   PUSHER_KEY: z.string().min(1),
@@ -28,6 +29,7 @@ const client = z.object({
  * @type {Record<keyof z.infer<typeof server> | keyof z.infer<typeof client>, string | undefined>}
  */
 const processEnv = {
+  DATABASE_URL: process.env.DATABASE_URL,
   NODE_ENV: process.env.NODE_ENV,
   PUSHER_APP_ID: process.env.PUSHER_APP_ID,
   PUSHER_KEY: process.env.PUSHER_KEY,
@@ -48,7 +50,11 @@ const merged = server.merge(client);
 
 let env = /** @type {MergedOutput} */ (process.env);
 
-if (!!process.env.SKIP_ENV_VALIDATION == false) {
+const skip =
+  !!process.env.SKIP_ENV_VALIDATION &&
+  process.env.SKIP_ENV_VALIDATION !== "false" &&
+  process.env.SKIP_ENV_VALIDATION !== "0";
+if (!skip) {
   const isServer = typeof window === "undefined";
 
   const parsed = /** @type {MergedSafeParseReturn} */ (
