@@ -14,15 +14,15 @@ export const exampleRouter = createTRPCRouter({
     return ctx.prisma.loginSecrets.findMany();
   }),
 
-  createSecret: publicProcedure.query(async ({ ctx }) => {
+  createSecret: publicProcedure.mutation(async ({ ctx }) => {
     return ctx.prisma.loginSecrets.create({
       data: {
-        name: "",
+        name: "Unknown username",
       },
     });
   }),
 
   getAllSecret: publicProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.loginSecrets.findMany();
+    return await ctx.prisma.loginSecrets.findMany();
   }),
 });
