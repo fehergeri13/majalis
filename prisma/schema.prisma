@@ -12,9 +12,16 @@ datasource db {
 }
 
 model LoginSecrets {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String   @db.VarChar(255)
-  token     String   @default(uuid())
+  id        Int               @id @default(autoincrement())
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  name      String            @db.VarChar(255)
+  token     String            @default(uuid())
+  status    LoginSecretStatus @default(NEW)
+}
+
+enum LoginSecretStatus {
+  NEW
+  CONNECTED
+  DISCONNECTED
 }
