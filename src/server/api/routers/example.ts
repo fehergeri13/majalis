@@ -10,35 +10,51 @@ export const exampleRouter = createTRPCRouter({
         greeting: `Hello ${input.text}`,
       };
     }),
-  getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.loginSecrets.findMany();
-  }),
-
-  createSecret: publicProcedure.mutation(async ({ ctx }) => {
-    return ctx.prisma.loginSecrets.create({
-      data: {
-        name: "Unknown username",
-      },
-    });
-  }),
 
   saveGameToken: publicProcedure
     .input(z.object({ gameToken: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      console.log("token created")
-      return ctx.prisma.loginSecrets.create({
+      console.log("token created");
+      return ctx.prisma.game.create({
         data: {
-          name: "",
-          token: input.gameToken,
+          gameToken: input.gameToken,
         },
       });
     }),
 
-  getToken: publicProcedure.input(z.object({ gameToken: z.union([z.string(), z.undefined()]) })).query(async ({ ctx, input }) => {
-    return await ctx.prisma.loginSecrets.findFirstOrThrow({where: {token:input.gameToken }});
-  }),
+  checkGameToken: publicProcedure
+    .input(z.object({ gameToken: z.union([z.string(), z.undefined()]) }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.prisma.game.findFirstOrThrow({
+        where: { gameToken: input.gameToken },
+      });
+    }),
 
-  getAllSecret: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.prisma.loginSecrets.findMany();
-  }),
+  saveUserToken: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+        userToken: z.string(),
+        userName: z.string().min(3),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      console.log("token created");
+      return ctx.prisma.user.create({
+        data: {
+          gameToken: input.gameToken,
+          userToken: input.userToken,
+          userName: input.userName,
+        },
+      });
+    }),
+
+  checkUserToken: publicProcedure
+    .input(z.object({ gameToken: z.string(), userToken: z.string() }))
+    .query(async ({ ctx, input }) => {
+      console.log("token created");
+      return ctx.prisma.user.findFirstOrThrow({
+        where: { gameToken: input.gameToken, userToken: input.userToken },
+      });
+    }),
 });

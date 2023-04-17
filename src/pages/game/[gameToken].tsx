@@ -3,12 +3,22 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
 import { useState } from "react";
+import { useGeneratedToken } from "~/pages/admin";
+import { api } from "~/utils/api";
 
 const User: NextPage = () => {
   const [userName, setUserName] = useState("");
 
   const router = useRouter();
   const gameToken = router.query.gameToken as string;
+
+  const getTokenQuery = api.example.checkGameToken.useQuery({ gameToken });
+  const save = api.example.saveUserToken.useMutation()
+
+
+  const userToken = useGeneratedToken("userToken");
+
+
 
   const { pusher, connect, isConnected } = usePusher({ gameToken: gameToken, userName: userName, autoConnect: false });
   usePusherPresenceChannelStore(pusher, "presence-majalis");

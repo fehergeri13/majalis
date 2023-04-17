@@ -11,17 +11,22 @@ datasource db {
   // relationMode = "prisma"
 }
 
-model LoginSecrets {
-  id        Int               @id @default(autoincrement())
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  name      String            @db.VarChar(255)
-  token     String            @default(uuid())
-  status    LoginSecretStatus @default(NEW)
+model Game {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  gameToken String   @unique
+  // users     User[]
 }
 
-enum LoginSecretStatus {
-  NEW
-  CONNECTED
-  DISCONNECTED
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // game      Game   @relation(fields: [gameToken], references: [gameToken])
+  gameToken String
+
+  userToken String
+  userName  String
 }
