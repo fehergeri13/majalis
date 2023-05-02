@@ -33,6 +33,7 @@ export function usePusher({
 
     const pusherClient = new Pusher(env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: "eu",
+      activityTimeout: 10_000,
 
       userAuthentication: {
         endpoint: "/api/pusher/auth-user",
