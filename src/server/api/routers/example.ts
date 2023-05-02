@@ -29,6 +29,23 @@ export const exampleRouter = createTRPCRouter({
       });
     }),
 
+  addUserToken: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+        userToken: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.user.create({
+        data: {
+          gameToken: input.gameToken,
+          userToken: input.userToken,
+          userName: "",
+        },
+      });
+    }),
+
   saveUserToken: publicProcedure
     .input(
       z.object({

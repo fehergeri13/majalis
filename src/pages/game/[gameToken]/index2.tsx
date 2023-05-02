@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useGeneratedToken } from "~/pages/admin";
 import { api } from "~/utils/api";
 
-const User: NextPage = () => {
+const Game: NextPage = () => {
   const [userName, setUserName] = useState("");
 
   const router = useRouter();
@@ -55,4 +55,4 @@ const User: NextPage = () => {
   );
 };
 
-export default User;
+export default Game;

@@ -48,7 +48,6 @@ export function useGeneratedToken(
 const Admin: NextPage = () => {
   const [gameToken, setGameToken] = useState<null | string>(null);
   const saveTokenMutation = api.example.saveGameToken.useMutation();
-  const qrCodeDataUrl = useQrCode(`${getOrigin()}/game/${gameToken ?? ""}`);
 
   return (
     <>
@@ -59,16 +58,10 @@ const Admin: NextPage = () => {
       </Head>
       <main className="p-4">
         <button
-          onClick={() => {
+          onClick={async () => {
             const newToken = generateRandomToken();
-            saveTokenMutation.mutate(
-              { gameToken: newToken },
-              {
-                onSuccess: () => {
-                  setGameToken(newToken);
-                },
-              }
-            );
+            await saveTokenMutation.mutateAsync({ gameToken: newToken });
+            setGameToken(newToken);
           }}
         >
           Generate game QR code
@@ -76,7 +69,7 @@ const Admin: NextPage = () => {
 
         {gameToken != null && (
           <div className="flex items-center gap-4 rounded border p-4">
-            <Image src={qrCodeDataUrl} alt="qr-code" width={100} height={100} />
+            <QrCodeImage data={`${getOrigin()}/game/${gameToken ?? ""}`} />
             <Link href={`/game/${gameToken}`}>Open game</Link>
           </div>
         )}
@@ -99,6 +92,19 @@ export function getOrigin(): string {
   return typeof window !== "undefined" ? window?.location?.origin ?? "" : "";
 }
 
-function generateRandomToken() {
+export function generateRandomToken() {
   return uuidV4().replaceAll("-", "");
+}
+
+export function QrCodeImage({
+  data,
+  width = 100,
+  height = 100,
+}: {
+  data: string;
+  width?: number;
+  height?: number;
+}) {
+  const qrCodeDataUrl = useQrCode(data);
+  return <Image src={qrCodeDataUrl} alt="qr-code" width={width} height={height} />;
 }
