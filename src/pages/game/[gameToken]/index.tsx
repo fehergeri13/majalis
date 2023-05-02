@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import { generateRandomToken, getOrigin, QrCodeImage } from "~/pages/admin";
 import Link from "next/link";
 import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
+import { ConnectionDot } from "~/components/ConnectionDot";
 
 const Game: NextPage = () => {
   const router = useRouter();
@@ -36,7 +37,9 @@ const Game: NextPage = () => {
                 <li key={user.id} className="flex items-center space-x-4 rounded border border-gray-300 p-2">
                   <QrCodeImage data={`${getOrigin()}/game/${gameToken}/${user.userToken}`} />
                   <div>{user.userName !== "" ? user.userName : "No-name"}</div>
-                  <div>{memberStore.isConnected(user.userToken) ? "Connected" : "Offline"}</div>
+
+                  <ConnectionDot isConnected={memberStore.isConnected(user.userToken)}/>
+
                   <Link href={`/game/${gameToken}/${user.userToken}`} target="_blank">
                     Open user page
                   </Link>

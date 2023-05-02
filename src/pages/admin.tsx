@@ -1,12 +1,12 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import { useQrCode } from "~/pages/SecretPreview";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidV4 } from "uuid";
 import Image from "next/image";
 import Link from "next/link";
+import { useQrCode } from "~/components/useQrCode";
 
 export function useGeneratedToken(
   queryKey: string,

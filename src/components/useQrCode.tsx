@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "qrcode";
 
-
 export function useQrCode(input: string) {
   const { data } = useQuery(["qr-code", input], () =>
     QRCode.toDataURL(input, { type: "image/png", width: 200, margin: 0 })
