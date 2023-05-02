@@ -1,46 +1,39 @@
-import type {NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import { pusherServerClient } from "~/server/helpers/pusher";
 import type { StrictNextApiRequest } from "~/server/helpers/StrictNextApiRequest";
 import { prisma } from "~/server/db";
 
-
 export default async function handler(
-  req: StrictNextApiRequest<{ channel_name: string; socket_id: string, userId: string, gameToken: string, userName: string }>,
+  req: StrictNextApiRequest<{
+    channel_name: string;
+    socket_id: string;
+    user_id: string;
+    gameToken: string;
+  }>,
   res: NextApiResponse
 ) {
+  console.log("req.body", req.body);
 
-  console.log("req.body", req.body)
+  await validateUserToken(req.body.channel_name, req.body.gameToken, req.body.user_id);
 
-  if(!await isValid(req.body.channel_name, req.body.gameToken)) {
-    res.status(404).send("lol");
-    return;
-  }
-
-
-  const auth = pusherServerClient.authorizeChannel(
-    req.body.socket_id,
-    req.body.channel_name,
-    {
-      user_id: req.body.userId,
-      user_info: {
-        name: req.body.userName,
-      },
-    }
-  );
+  const auth = pusherServerClient.authorizeChannel(req.body.socket_id, req.body.channel_name, {
+    user_id: req.body.user_id,
+  });
   res.send(auth);
 }
 
+async function validateUserToken(
+  channelName: string,
+  gameToken: string,
+  userToken: string
+): Promise<boolean> {
+  if (channelName !== "presence-majalis") return false;
 
-async function isValid(channelName: string, userId: string): Promise<boolean> {
-  if(channelName === "presence-majalis" && userId === "admin") return true
-  if(channelName === "presence-majalis") {
-    return true;
-    // try {
-    //   const loginSecret = await prisma.loginSecrets.findFirstOrThrow({where: {token: userId}})
-    //   return loginSecret.status === "NEW";
-    // } catch(e) {
-    //   return false
-    // }
-  }
-  return false;
+  await prisma.game.findFirstOrThrow({ where: { gameToken } });
+
+  if (userToken === "admin") return true;
+
+  await prisma.user.findFirstOrThrow({ where: { gameToken, userToken } });
+
+  return true;
 }

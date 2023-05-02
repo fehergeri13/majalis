@@ -9,11 +9,11 @@ Pusher.logToConsole = true;
 
 export function usePusher({
   gameToken,
-  userName,
+  userToken,
   autoConnect = true,
 }: {
   gameToken: string | undefined;
-  userName: string | undefined;
+  userToken: string | undefined;
   autoConnect?: boolean;
 }) {
   const [pusher, setPusher] = useState<null | Pusher>(null);
@@ -21,10 +21,10 @@ export function usePusher({
   const [isConnected, setConnected] = useState(false);
 
   const connect = useCallback(() => {
-    if (gameToken == null || userName == null || userName === "") {
-      console.warn("gameToken or userName is empty", {
+    if (gameToken == null || userToken == null || userToken === "") {
+      console.warn("gameToken or userToken is empty", {
         gameToken: gameToken,
-        userName,
+        userToken: userToken,
       });
       return;
     }
@@ -41,7 +41,7 @@ export function usePusher({
       channelAuthorization: {
         endpoint: "/api/pusher/auth-channel",
         transport: "ajax",
-        params: { gameToken: gameToken, userName: userName },
+        params: { gameToken: gameToken, user_id: userToken },
       },
     });
 
@@ -59,7 +59,7 @@ export function usePusher({
 
     pusherRef.current = pusherClient;
     setPusher(pusherClient);
-  }, [pusher, gameToken, userName]);
+  }, [pusher, gameToken, userToken]);
 
   useEffect(() => {
     if (autoConnect && pusher == null) {
@@ -77,16 +77,18 @@ export function usePusher({
   return { pusher, connect, isConnected };
 }
 
-export function usePusherPresenceChannelStore(
-  pusher: Pusher | null,
-  channelName: `presence-${string}`
-) {
+export function usePusherPresenceChannelStore(pusher: Pusher | null, channelName: `presence-${string}`) {
   const store = useFactoryRef(() => {
-    return createStore<{ members: string[] }>((_set, _get, _api) => {
-      return {
-        members: [],
-      };
-    });
+    return createStore<{ members: string[]; isConnected: (userToken: string) => boolean }>(
+      (_set, _get, _api) => {
+        return {
+          members: [],
+          isConnected: (userToken: string) => {
+            return _get().members.includes(userToken);
+          },
+        };
+      }
+    );
   }).current;
 
   useEffect(() => {
@@ -100,10 +102,7 @@ export function usePusherPresenceChannelStore(
     presenceChannel.bind("pusher:member_removed", updateMembers);
 
     function updateMembers() {
-      const members = presenceChannel.members.members as Record<
-        string,
-        { name: string }
-      >;
+      const members = presenceChannel.members.members as Record<string, { name: string }>;
       console.log("presenceChannel.members", presenceChannel.members);
 
       store.setState(() => ({

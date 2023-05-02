@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { useState } from "react";
+import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
 
 const User: NextPage = () => {
   const router = useRouter();
@@ -22,6 +23,9 @@ const User: NextPage = () => {
     }
   );
   const saveUserNameMutation = api.example.saveUserName.useMutation();
+
+  const { pusher, isConnected } = usePusher({ gameToken, userToken });
+  usePusherPresenceChannelStore(pusher, "presence-majalis");
 
   return (
     <>
