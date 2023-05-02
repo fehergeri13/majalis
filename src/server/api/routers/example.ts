@@ -9,6 +9,7 @@ export const exampleRouter = createTRPCRouter({
     };
   }),
 
+  //region saveGameToken
   saveGameToken: publicProcedure
     .input(z.object({ gameToken: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -18,17 +19,19 @@ export const exampleRouter = createTRPCRouter({
         },
       });
     }),
+  //endregion
 
-  checkGameToken: publicProcedure
+  //region getGame
+  getGame: publicProcedure
     .input(z.object({ gameToken: z.union([z.string(), z.undefined()]) }))
     .query(async ({ ctx, input }) => {
-      console.log("checking game token", input.gameToken);
-
       return await ctx.prisma.game.findFirstOrThrow({
         where: { gameToken: input.gameToken },
       });
     }),
+  //endregion
 
+  //region addUserToken
   addUserToken: publicProcedure
     .input(
       z.object({
@@ -45,7 +48,9 @@ export const exampleRouter = createTRPCRouter({
         },
       });
     }),
+  //endregion
 
+  //region saveUserName
   saveUserName: publicProcedure
     .input(
       z.object({
@@ -67,7 +72,9 @@ export const exampleRouter = createTRPCRouter({
         data: { userName: input.userName },
       });
     }),
+  //endregion
 
+  //region getUser
   getUser: publicProcedure
     .input(z.object({ gameToken: z.string(), userToken: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -75,10 +82,63 @@ export const exampleRouter = createTRPCRouter({
         where: { gameToken: input.gameToken, userToken: input.userToken },
       });
     }),
+  //endregion
 
+  //region getAllUser
   getAllUser: publicProcedure.input(z.object({ gameToken: z.string() })).query(async ({ ctx, input }) => {
     return ctx.prisma.user.findMany({
       where: { gameToken: input.gameToken },
     });
   }),
+  //endregion
+
+  //region startGame
+  startGame: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.game.update({
+        where: { gameToken: input.gameToken },
+        data: { startedAt: new Date(), stoppedAt: null },
+      });
+    }),
+  //endregion
+
+  //region stopGame
+  stopGame: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.game.update({
+        where: { gameToken: input.gameToken },
+        data: { stoppedAt: new Date() },
+      });
+    }),
+  //endregion
+
+  //region occupyBase
+  occupyBase: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+        userToken: z.string(),
+        teamNumber: z.number().positive(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.game.findFirstOrThrow({
+        where: { gameToken: input.gameToken, startedAt: { not: null }, stoppedAt: null },
+      });
+
+      await ctx.prisma.occupation.create({
+        data: {gameToken: input.gameToken, userToken: input.userToken, teamNumber: input.teamNumber}
+      });
+    }),
+  //endregion
 });

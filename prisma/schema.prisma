@@ -12,11 +12,12 @@ datasource db {
 }
 
 model Game {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  gameToken String   @unique
-  // users     User[]
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  gameToken String    @unique
+  startedAt DateTime?
+  stoppedAt DateTime?
 }
 
 model User {
@@ -24,9 +25,17 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // game      Game   @relation(fields: [gameToken], references: [gameToken])
   gameToken String
 
-  userToken String
+  userToken String @unique
   userName  String
+}
+
+model Occupation {
+  id         Int      @id @default(autoincrement())
+  teamNumber Int
+  timestamp  DateTime @default(now())
+
+  gameToken String
+  userToken String
 }

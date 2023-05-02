@@ -12,11 +12,11 @@ const User: NextPage = () => {
 
   const [userName, setUserName] = useState("");
 
-  const checkGameTokenQuery = api.example.checkGameToken.useQuery({ gameToken });
+  const getGameQuery = api.example.getGame.useQuery({ gameToken });
   const getUserQuery = api.example.getUser.useQuery(
     { gameToken, userToken },
     {
-      enabled: checkGameTokenQuery.isSuccess,
+      enabled: getGameQuery.isSuccess,
       onSuccess: (data) => {
         setUserName(data.userName);
       },
@@ -35,10 +35,10 @@ const User: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="p-4">
-        {checkGameTokenQuery.isError && <>There is an error with this game token</>}
+        {getGameQuery.isError && <>There is an error with this game token</>}
         {getUserQuery.isError && <>There is an error with this user token</>}
 
-        {checkGameTokenQuery.isLoading || (getUserQuery.isLoading && <>Loading</>)}
+        {getGameQuery.isLoading || (getUserQuery.isLoading && <>Loading</>)}
 
         {getUserQuery.isSuccess && (
           <div>

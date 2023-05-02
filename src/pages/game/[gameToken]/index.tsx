@@ -12,9 +12,11 @@ import { IconExternalLink, IconQrcode } from "@tabler/icons-react";
 const Game: NextPage = () => {
   const router = useRouter();
   const gameToken = router.query.gameToken as string;
-  const getTokenQuery = api.example.checkGameToken.useQuery({ gameToken }, { enabled: gameToken != null });
-  const allUserQuery = api.example.getAllUser.useQuery({ gameToken }, { enabled: getTokenQuery.isSuccess });
+  const getGameQuery = api.example.getGame.useQuery({ gameToken }, { enabled: gameToken != null });
+  const allUserQuery = api.example.getAllUser.useQuery({ gameToken }, { enabled: getGameQuery.isSuccess });
   const addUserMutation = api.example.addUserToken.useMutation();
+  const startGameMutation = api.example.startGame.useMutation();
+  const stopGameMutation = api.example.stopGame.useMutation();
 
   const { pusher, isConnected } = usePusher({ gameToken: gameToken, userToken: "admin", autoConnect: true });
   const memberStore = usePusherPresenceChannelStore(pusher, "presence-majalis");
@@ -27,9 +29,9 @@ const Game: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="p-4">
-        {getTokenQuery.isSuccess && (
+        {getGameQuery.isSuccess && (
           <>
-            <div className="flex items-center space-x-2 my-8 ml-2">
+            <div className="my-8 ml-2 flex items-center space-x-2">
               <div>Admin status:</div>
               <ConnectionDot isConnected={isConnected} />
             </div>
@@ -38,16 +40,19 @@ const Game: NextPage = () => {
               {allUserQuery.data?.length === 0 && <>No user created yet</>}
               {allUserQuery.data?.map((user) => (
                 <li key={user.id} className="flex items-center space-x-4 rounded border border-gray-300 p-2">
-                  <HiddenQrCode data={`${getOrigin()}/game/${gameToken}/${user.userToken}`} width={200} height={200} />
+                  <HiddenQrCode
+                    data={`${getOrigin()}/game/${gameToken}/${user.userToken}`}
+                    width={200}
+                    height={200}
+                  />
                   <Link href={`/game/${gameToken}/${user.userToken}`} target="_blank">
                     Open user
-                    <IconExternalLink className="w-5 h-5 inline-block ml-2 text-gray-600"/>
+                    <IconExternalLink className="ml-2 inline-block h-5 w-5 text-gray-600" />
                   </Link>
 
-                  <div className="pl-8 w-[200px]">{user.userName !== "" ? user.userName : "No-name"}</div>
+                  <div className="w-[200px] pl-8">{user.userName !== "" ? user.userName : "No-name"}</div>
 
                   <ConnectionDot isConnected={memberStore.isConnected(user.userToken)} />
-
                 </li>
               ))}
             </ul>
@@ -61,9 +66,45 @@ const Game: NextPage = () => {
             >
               Generate user QR code
             </button>
+
+            {getGameQuery.data?.startedAt == null && (
+              <button
+                className="mt-4 rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
+                onClick={async () => {
+                  await startGameMutation.mutateAsync({ gameToken });
+                  await getGameQuery.refetch();
+                }}
+              >
+                Start game
+              </button>
+            )}
+
+            {getGameQuery.data?.startedAt != null && getGameQuery.data?.stoppedAt != null && (
+              <button
+                className="mt-4 rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
+                onClick={async () => {
+                  await startGameMutation.mutateAsync({ gameToken });
+                  await getGameQuery.refetch();
+                }}
+              >
+                Restart game
+              </button>
+            )}
+
+            {getGameQuery.data?.startedAt != null && getGameQuery.data?.stoppedAt == null && (
+              <button
+                className="mt-4 rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
+                onClick={async () => {
+                  await stopGameMutation.mutateAsync({ gameToken });
+                  await getGameQuery.refetch();
+                }}
+              >
+                Stop game
+              </button>
+            )}
           </>
         )}
-        {getTokenQuery.isError && <>There is an error with this game token</>}
+        {getGameQuery.isError && <>There is an error with this game token</>}
       </main>
     </>
   );
@@ -83,11 +124,9 @@ function HiddenQrCode({
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className="select-none cursor-pointer" onClick={() => setVisible((prev) => !prev)}>
+    <div className="cursor-pointer select-none" onClick={() => setVisible((prev) => !prev)}>
       {visible && <QrCodeImage data={data} width={width} height={height} />}
-      {!visible && (
-        <IconQrcode className="h-10 w-10 bg-gray-200 text-gray-400 hover:text-gray-500" />
-      )}
+      {!visible && <IconQrcode className="h-10 w-10 bg-gray-200 text-gray-400 hover:text-gray-500" />}
     </div>
   );
 }
