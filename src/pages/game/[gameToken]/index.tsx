@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
 import { ConnectionDot } from "~/components/ConnectionDot";
 import { useState } from "react";
-import { IconQrcode } from "@tabler/icons-react";
+import { IconExternalLink, IconQrcode } from "@tabler/icons-react";
 
 const Game: NextPage = () => {
   const router = useRouter();
@@ -29,22 +29,25 @@ const Game: NextPage = () => {
       <main className="p-4">
         {getTokenQuery.isSuccess && (
           <>
-            <div>Connection status: {isConnected ? "Connected" : "Offline"}</div>
-
-            <h3>User list</h3>
+            <div className="flex items-center space-x-2 my-8 ml-2">
+              <div>Admin status:</div>
+              <ConnectionDot isConnected={isConnected} />
+            </div>
 
             <ul className="space-y-4">
               {allUserQuery.data?.length === 0 && <>No user created yet</>}
               {allUserQuery.data?.map((user) => (
                 <li key={user.id} className="flex items-center space-x-4 rounded border border-gray-300 p-2">
-                  <HiddenQrCode data={`${getOrigin()}/game/${gameToken}/${user.userToken}`} />
-                  <div>{user.userName !== "" ? user.userName : "No-name"}</div>
+                  <HiddenQrCode data={`${getOrigin()}/game/${gameToken}/${user.userToken}`} width={200} height={200} />
+                  <Link href={`/game/${gameToken}/${user.userToken}`} target="_blank">
+                    Open user
+                    <IconExternalLink className="w-5 h-5 inline-block ml-2 text-gray-600"/>
+                  </Link>
+
+                  <div className="pl-8 w-[200px]">{user.userName !== "" ? user.userName : "No-name"}</div>
 
                   <ConnectionDot isConnected={memberStore.isConnected(user.userToken)} />
 
-                  <Link href={`/game/${gameToken}/${user.userToken}`} target="_blank">
-                    Open user page
-                  </Link>
                 </li>
               ))}
             </ul>
@@ -80,11 +83,11 @@ function HiddenQrCode({
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className="select-none" onClick={() => setVisible((prev) => !prev)}>
+    <div className="select-none cursor-pointer" onClick={() => setVisible((prev) => !prev)}>
       {visible && <QrCodeImage data={data} width={width} height={height} />}
-      {!visible && <div className="w-[100px] h-[100px] bg-gray-200 group flex items-center justify-center cursor-pointer">
-        <IconQrcode className="text-gray-400 w-10 h-10 opacity-0 group-hover:opacity-100"/>
-      </div>}
+      {!visible && (
+        <IconQrcode className="h-10 w-10 bg-gray-200 text-gray-400 hover:text-gray-500" />
+      )}
     </div>
   );
 }
