@@ -34,12 +34,13 @@ export default async function handler(
 async function isValid(channelName: string, userId: string): Promise<boolean> {
   if(channelName === "presence-majalis" && userId === "admin") return true
   if(channelName === "presence-majalis") {
-    try {
-      const loginSecret = await prisma.loginSecrets.findFirstOrThrow({where: {token: userId}})
-      return loginSecret.status === "NEW";
-    } catch(e) {
-      return false
-    }
+    return true;
+    // try {
+    //   const loginSecret = await prisma.loginSecrets.findFirstOrThrow({where: {token: userId}})
+    //   return loginSecret.status === "NEW";
+    // } catch(e) {
+    //   return false
+    // }
   }
   return false;
 }

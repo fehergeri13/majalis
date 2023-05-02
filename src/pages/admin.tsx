@@ -2,15 +2,11 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
 import { useQrCode } from "~/pages/SecretPreview";
-import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
 import { useRouter } from "next/router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 as uuidV4 } from "uuid";
 import Image from "next/image";
-
-export function getOrigin(): string {
-  return typeof window !== "undefined" ? window?.location?.origin ?? "" : "";
-}
+import Link from "next/link";
 
 export function useGeneratedToken(
   queryKey: string,
@@ -22,11 +18,10 @@ export function useGeneratedToken(
 
   useEffect(() => {
     if (!enabled) return;
-
     if (!router.isReady) return;
 
     if (router.query.gameToken == null || router.query.gameToken == "") {
-      const newToken = uuidV4().replaceAll("-", "");
+      const newToken = generateRandomToken();
       router.query[queryKey] = newToken;
 
       if (mutateRef.current != null) {
@@ -51,22 +46,9 @@ export function useGeneratedToken(
 }
 
 const Admin: NextPage = () => {
-  const router = useRouter();
-
-  const gameToken = useGeneratedToken("gameToken", (gameToken, onSuccess) => {
-    saveTokenMutation.mutate({ gameToken }, { onSuccess });
-  });
-
+  const [gameToken, setGameToken] = useState<null | string>(null);
   const saveTokenMutation = api.example.saveGameToken.useMutation();
-  const getTokenQuery = api.example.checkGameToken.useQuery({ gameToken });
-
   const qrCodeDataUrl = useQrCode(`${getOrigin()}/game/${gameToken ?? ""}`);
-
-  const { pusher } = usePusher({
-    gameToken: gameToken,
-    userName: "admin",
-  });
-  const store = usePusherPresenceChannelStore(pusher, "presence-majalis");
 
   return (
     <>
@@ -76,33 +58,28 @@ const Admin: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="p-4">
-        <div className="flex items-center gap-4 rounded border p-4">
-          {getTokenQuery.isSuccess && (
+        <button
+          onClick={() => {
+            const newToken = generateRandomToken();
+            saveTokenMutation.mutate(
+              { gameToken: newToken },
+              {
+                onSuccess: () => {
+                  setGameToken(newToken);
+                },
+              }
+            );
+          }}
+        >
+          Generate game QR code
+        </button>
+
+        {gameToken != null && (
+          <div className="flex items-center gap-4 rounded border p-4">
             <Image src={qrCodeDataUrl} alt="qr-code" width={100} height={100} />
-          )}
-
-          {getTokenQuery.isSuccess && <div>Token alive</div>}
-          {getTokenQuery.isLoading && <div>Loading...</div>}
-          {getTokenQuery.isError && (
-            <div>
-              Token not found
-              <button
-                onClick={() => {
-                  void router.replace({
-                    query: { ...router.query, gameToken: "" },
-                  });
-                }}
-                className="m-1 rounded bg-gray-200 px-2 py-1"
-              >
-                Reset token
-              </button>
-            </div>
-          )}
-        </div>
-
-        {store.members.map((member) => (
-          <div key={member}>member: {member}</div>
-        ))}
+            <Link href={`/game/${gameToken}`}>Open game</Link>
+          </div>
+        )}
       </main>
     </>
   );
@@ -116,4 +93,12 @@ export function useRefProxy<T>(value: T) {
   ref.current = value;
 
   return ref;
+}
+
+export function getOrigin(): string {
+  return typeof window !== "undefined" ? window?.location?.origin ?? "" : "";
+}
+
+function generateRandomToken() {
+  return uuidV4().replaceAll("-", "");
 }
