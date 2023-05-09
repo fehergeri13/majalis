@@ -4,7 +4,7 @@ import { generateRandomToken, getOrigin } from "~/pages/admin";
 import Link from "next/link";
 import { IconExternalLink, IconTrash } from "@tabler/icons-react";
 import { api } from "~/utils/api";
-import { MemberStore, usePusherPresenceChannelStore } from "~/utils/pusher";
+import { type MemberStore, usePusherPresenceChannelStore } from "~/utils/pusher";
 import type Pusher from "pusher-js";
 import { type User } from "@prisma/client";
 import { OccupationDisplay } from "~/components/teams/TeamSelector";

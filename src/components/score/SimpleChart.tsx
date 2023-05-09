@@ -12,7 +12,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import { api } from "~/utils/api";
 import { calcScore, useNow } from "~/components/score/SimpleScore";
-import { differenceInMinutes, eachMinuteOfInterval, format } from "date-fns";
+import { eachMinuteOfInterval, format } from "date-fns";
 
 ChartJS.register(
   CategoryScale,
