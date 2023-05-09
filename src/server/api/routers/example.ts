@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { type PrismaClient } from "@prisma/client";
 
 export const exampleRouter = createTRPCRouter({
   hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => {
@@ -185,13 +186,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const game = await ctx.prisma.game.findFirstOrThrow({
-        where: { gameToken: input.gameToken },
-      });
-
-      // TODO turn on this check
-      // if(game.startedAt === null) throw new Error("Game not started yet")
-      // if(game.stoppedAt !== null) throw new Error("Game is already stopped")
+      await checkGameIsLive(ctx.prisma, input.gameToken)
 
       await ctx.prisma.occupation.create({
         data: { gameToken: input.gameToken, userToken: input.userToken, teamNumber: input.teamNumber },
@@ -220,3 +215,13 @@ export const exampleRouter = createTRPCRouter({
     }),
   //endregion
 });
+
+export async function checkGameIsLive(prisma: PrismaClient, gameToken: string) {
+  const game = await prisma.game.findFirstOrThrow({
+    where: { gameToken: gameToken },
+  });
+
+  // TODO turn on this check
+  // if(game.startedAt === null) throw new Error("Game not started yet")
+  // if(game.stoppedAt !== null) throw new Error("Game is already stopped")
+}

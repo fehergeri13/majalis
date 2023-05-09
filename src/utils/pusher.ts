@@ -78,9 +78,11 @@ export function usePusher({
   return { pusher, connect, isConnected };
 }
 
+export type MemberStore = { members: string[]; isConnected: (userToken: string) => boolean };
+
 export function usePusherPresenceChannelStore(pusher: Pusher | null, channelName: `presence-${string}`) {
   const store = useFactoryRef(() => {
-    return createStore<{ members: string[]; isConnected: (userToken: string) => boolean }>(
+    return createStore<MemberStore>(
       (_set, _get, _api) => {
         return {
           members: [],

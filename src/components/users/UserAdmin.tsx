@@ -4,8 +4,10 @@ import { generateRandomToken, getOrigin } from "~/pages/admin";
 import Link from "next/link";
 import { IconExternalLink } from "@tabler/icons-react";
 import { api } from "~/utils/api";
-import { usePusherPresenceChannelStore } from "~/utils/pusher";
+import { MemberStore, usePusherPresenceChannelStore } from "~/utils/pusher";
 import type Pusher from "pusher-js";
+import { type User } from "@prisma/client";
+import { OccupationDisplay } from "~/components/teams/TeamSelector";
 
 export function UserAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pusher | null }) {
   const allUserQuery = api.example.getAllUser.useQuery({ gameToken });
@@ -17,21 +19,7 @@ export function UserAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
       <ul className="space-y-4">
         {allUserQuery.data?.length === 0 && <>No user created yet</>}
         {allUserQuery.data?.map((user) => (
-          <li key={user.id} className="flex items-center space-x-4 rounded border border-gray-300 p-2">
-            <HiddenQrCode
-              data={`${getOrigin()}/game/${gameToken}/${user.userToken}`}
-              width={200}
-              height={200}
-            />
-            <Link href={`/game/${gameToken}/${user.userToken}`} target="_blank">
-              Open user
-              <IconExternalLink className="ml-2 inline-block h-5 w-5 text-gray-600" />
-            </Link>
-
-            <div className="w-[200px] pl-8">{user.userName !== "" ? user.userName : "No-name"}</div>
-
-            <ConnectionDot isConnected={memberStore.isConnected(user.userToken)} />
-          </li>
+          <UserAdminItem user={user} key={user.id} memberStore={memberStore} />
         ))}
       </ul>
 
@@ -45,5 +33,32 @@ export function UserAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
         Generate user QR code
       </button>
     </>
+  );
+}
+
+export function UserAdminItem({ user, memberStore }: { user: User, memberStore: MemberStore }) {
+  const getOccupationQuery = api.example.getOccupation.useQuery({
+    gameToken: user.gameToken,
+    userToken: user.userToken,
+  });
+
+  return (
+    <li key={user.id} className="flex items-center space-x-4 rounded border border-gray-300 p-2">
+      <HiddenQrCode
+        data={`${getOrigin()}/game/${user.gameToken}/${user.userToken}`}
+        width={200}
+        height={200}
+      />
+      <Link href={`/game/${user.gameToken}/${user.userToken}`} target="_blank">
+        Open user
+        <IconExternalLink className="ml-2 inline-block h-5 w-5 text-gray-600" />
+      </Link>
+
+      <div className="w-[200px] pl-8">{user.userName !== "" ? user.userName : "No-name"}</div>
+
+      <ConnectionDot isConnected={memberStore.isConnected(user.userToken)} />
+
+      {getOccupationQuery.isSuccess && <OccupationDisplay team={getOccupationQuery.data} />}
+    </li>
   );
 }
