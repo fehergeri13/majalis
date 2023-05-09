@@ -2,18 +2,20 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
-import { generateRandomToken, getOrigin, QrCodeImage } from "~/pages/admin";
+import { generateRandomToken, getOrigin } from "~/pages/admin";
 import Link from "next/link";
 import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
 import { ConnectionDot } from "~/components/ConnectionDot";
-import { useState } from "react";
-import { IconExternalLink, IconQrcode } from "@tabler/icons-react";
+import { IconExternalLink } from "@tabler/icons-react";
+import { HiddenQrCode } from "~/components/HiddenQrCode";
+import { TeamAdmin } from "~/components/teams/TeamAdmin";
 
 const Game: NextPage = () => {
   const router = useRouter();
   const gameToken = router.query.gameToken as string;
   const getGameQuery = api.example.getGame.useQuery({ gameToken }, { enabled: gameToken != null });
   const allUserQuery = api.example.getAllUser.useQuery({ gameToken }, { enabled: getGameQuery.isSuccess });
+
   const addUserMutation = api.example.addUserToken.useMutation();
   const startGameMutation = api.example.startGame.useMutation();
   const stopGameMutation = api.example.stopGame.useMutation();
@@ -102,6 +104,9 @@ const Game: NextPage = () => {
                 Stop game
               </button>
             )}
+
+
+            {getGameQuery.isSuccess && <TeamAdmin gameToken={gameToken} />}
           </>
         )}
         {getGameQuery.isError && <>There is an error with this game token</>}
@@ -112,21 +117,3 @@ const Game: NextPage = () => {
 
 export default Game;
 
-function HiddenQrCode({
-  data,
-  width = 100,
-  height = 100,
-}: {
-  data: string;
-  width?: number;
-  height?: number;
-}) {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <div className="cursor-pointer select-none" onClick={() => setVisible((prev) => !prev)}>
-      {visible && <QrCodeImage data={data} width={width} height={height} />}
-      {!visible && <IconQrcode className="h-10 w-10 bg-gray-200 text-gray-400 hover:text-gray-500" />}
-    </div>
-  );
-}

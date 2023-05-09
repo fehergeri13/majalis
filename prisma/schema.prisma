@@ -31,6 +31,13 @@ model User {
   userName  String
 }
 
+model Team {
+  id        Int    @id @default(autoincrement())
+  name      String
+  color     String
+  gameToken String
+}
+
 model Occupation {
   id         Int      @id @default(autoincrement())
   teamNumber Int
