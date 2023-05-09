@@ -178,6 +178,20 @@ export const exampleRouter = createTRPCRouter({
     }),
   //endregion
 
+  //region deleteTeam
+  deleteTeam: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await validateGameToken(ctx.prisma, input.gameToken);
+      await ctx.prisma.team.delete({ where: { id: input.id } });
+    }),
+  //endregion
+
   //region getAllTeam
   getAllTeam: publicProcedure
     .input(
@@ -259,7 +273,7 @@ export const exampleRouter = createTRPCRouter({
         where: { gameToken: input.gameToken },
       });
 
-      return {users, occupations, teams}
+      return { users, occupations, teams };
     }),
   //endregion
 });
@@ -274,3 +288,8 @@ export async function checkGameIsLive(prisma: PrismaClient, gameToken: string) {
   // if(game.stoppedAt !== null) throw new Error("Game is already stopped")
 }
 
+export async function validateGameToken(prisma: PrismaClient, gameToken: string) {
+  await prisma.game.findFirstOrThrow({
+    where: { gameToken: gameToken },
+  });
+}
