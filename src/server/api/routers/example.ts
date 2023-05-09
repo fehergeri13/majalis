@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { type PrismaClient, type Occupation, Team, User } from "@prisma/client";
-import { last } from "lodash";
+import { type PrismaClient } from "@prisma/client";
 
 export const exampleRouter = createTRPCRouter({
   hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => {
@@ -72,6 +71,22 @@ export const exampleRouter = createTRPCRouter({
       await ctx.prisma.user.update({
         where: { id: user.id },
         data: { userName: input.userName },
+      });
+    }),
+  //endregion
+
+  //region deleteUser
+  deleteUser: publicProcedure
+    .input(
+      z.object({
+        userToken: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.user.delete({
+        where: {
+          userToken: input.userToken,
+        },
       });
     }),
   //endregion

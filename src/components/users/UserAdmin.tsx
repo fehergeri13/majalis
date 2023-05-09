@@ -2,7 +2,7 @@ import { ConnectionDot } from "~/components/ConnectionDot";
 import { HiddenQrCode } from "~/components/HiddenQrCode";
 import { generateRandomToken, getOrigin } from "~/pages/admin";
 import Link from "next/link";
-import { IconExternalLink } from "@tabler/icons-react";
+import { IconExternalLink, IconTrash } from "@tabler/icons-react";
 import { api } from "~/utils/api";
 import { MemberStore, usePusherPresenceChannelStore } from "~/utils/pusher";
 import type Pusher from "pusher-js";
@@ -19,7 +19,7 @@ export function UserAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
       <ul className="space-y-4">
         {allUserQuery.data?.length === 0 && <>No user created yet</>}
         {allUserQuery.data?.map((user) => (
-          <UserAdminItem user={user} key={user.id} memberStore={memberStore} />
+          <UserAdminItem user={user} key={user.id} memberStore={memberStore} onChange={allUserQuery.refetch} />
         ))}
       </ul>
 
@@ -36,11 +36,13 @@ export function UserAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
   );
 }
 
-export function UserAdminItem({ user, memberStore }: { user: User, memberStore: MemberStore }) {
+export function UserAdminItem({ user, memberStore, onChange }: { user: User, memberStore: MemberStore, onChange: () => void }) {
   const getOccupationQuery = api.example.getOccupation.useQuery({
     gameToken: user.gameToken,
     userToken: user.userToken,
   });
+
+  const deleteUserMutation = api.example.deleteUser.useMutation()
 
   return (
     <li key={user.id} className="flex items-center space-x-4 rounded border border-gray-300 p-2">
@@ -59,6 +61,15 @@ export function UserAdminItem({ user, memberStore }: { user: User, memberStore: 
       <ConnectionDot isConnected={memberStore.isConnected(user.userToken)} />
 
       {getOccupationQuery.isSuccess && <OccupationDisplay team={getOccupationQuery.data} />}
+
+      <div className="grow"></div>
+
+      <button className="rounded border border-gray-200 bg-red-500 px-2 py-1 text-white hover:bg-red-600 active:bg-red-700" onClick={async () => {
+        if(confirm(`Do you want to delete user:${user.userName}`)) {
+          await deleteUserMutation.mutateAsync({userToken: user.userToken})
+          onChange()
+        }
+      }}><IconTrash className="w-5 h-5"/></button>
     </li>
   );
 }
