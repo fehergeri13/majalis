@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { useState } from "react";
 import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
+import { TeamSelector } from "~/components/teams/TeamSelector";
 
 const User: NextPage = () => {
   const router = useRouter();
@@ -67,6 +68,8 @@ const User: NextPage = () => {
             </div>
           </div>
         )}
+
+        <TeamSelector gameToken={gameToken} userToken={userToken} />
       </main>
     </>
   );

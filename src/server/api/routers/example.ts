@@ -185,13 +185,38 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.prisma.game.findFirstOrThrow({
-        where: { gameToken: input.gameToken, startedAt: { not: null }, stoppedAt: null },
+      const game = await ctx.prisma.game.findFirstOrThrow({
+        where: { gameToken: input.gameToken },
       });
+
+      // TODO turn on this check
+      // if(game.startedAt === null) throw new Error("Game not started yet")
+      // if(game.stoppedAt !== null) throw new Error("Game is already stopped")
 
       await ctx.prisma.occupation.create({
         data: { gameToken: input.gameToken, userToken: input.userToken, teamNumber: input.teamNumber },
       });
+    }),
+  //endregion
+
+  //region getOccupation
+  getOccupation: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+        userToken: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const occupation = await ctx.prisma.occupation.findFirst({
+        where: { gameToken: input.gameToken, userToken: input.userToken },
+        orderBy: { timestamp: "desc" },
+      });
+
+      if (occupation == null) return null;
+
+      const team = await ctx.prisma.team.findUniqueOrThrow({ where: { id: occupation.teamNumber } });
+      return team
     }),
   //endregion
 });
