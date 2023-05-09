@@ -1,9 +1,15 @@
 import { api } from "~/utils/api";
 import { type Team } from "@prisma/client";
 
+type TeamOrEmpty = Override<Team, "id", number | null>;
+
 export function TeamSelector({ gameToken, userToken }: { gameToken: string; userToken: string }) {
   const allTeamQuery = api.example.getAllTeam.useQuery({ gameToken });
   const getOccupationQuery = api.example.getOccupation.useQuery({ gameToken, userToken });
+
+  const teams: TeamOrEmpty[] = allTeamQuery.isSuccess
+    ? [...allTeamQuery.data, { gameToken, name: "No occupation", id: null, color: "#ddd" }]
+    : [];
 
   return (
     <>
@@ -14,7 +20,7 @@ export function TeamSelector({ gameToken, userToken }: { gameToken: string; user
         <h3 className="my-4 text-xl">Teams</h3>
 
         <ul className="flex flex-col gap-2">
-          {allTeamQuery.data?.map((team) => (
+          {teams.map((team) => (
             <TeamSelectorItem
               key={team.id}
               team={team}
@@ -35,7 +41,7 @@ export function TeamSelectorItem({
   gameToken,
   userToken,
 }: {
-  team: Team;
+  team: TeamOrEmpty;
   onChange: () => void;
   gameToken: string;
   userToken: string;
@@ -70,3 +76,7 @@ export function OccupationDisplay({ team }: { team: Team | null }) {
     </>
   );
 }
+
+type Override<T, TKey extends keyof T, TValue> = {
+  [k in keyof T]: k extends TKey ? TValue : T[k];
+};

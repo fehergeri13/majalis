@@ -212,7 +212,7 @@ export const exampleRouter = createTRPCRouter({
       z.object({
         gameToken: z.string(),
         userToken: z.string(),
-        teamNumber: z.number().positive(),
+        teamNumber: z.union([z.number().positive(), z.null()]),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -239,9 +239,9 @@ export const exampleRouter = createTRPCRouter({
       });
 
       if (occupation == null) return null;
+      if (occupation.teamNumber == null) return null;
 
-      const team = await ctx.prisma.team.findUniqueOrThrow({ where: { id: occupation.teamNumber } });
-      return team;
+      return await ctx.prisma.team.findUniqueOrThrow({ where: { id: occupation.teamNumber } });
     }),
   //endregion
 
@@ -283,8 +283,8 @@ export async function checkGameIsLive(prisma: PrismaClient, gameToken: string) {
     where: { gameToken: gameToken },
   });
 
-  if(game.startedAt === null) throw new Error("Game not started yet")
-  if(game.stoppedAt !== null) throw new Error("Game is already stopped")
+  if (game.startedAt === null) throw new Error("Game not started yet");
+  if (game.stoppedAt !== null) throw new Error("Game is already stopped");
 }
 
 export async function validateGameToken(prisma: PrismaClient, gameToken: string) {

@@ -1,7 +1,8 @@
 import { api } from "~/utils/api";
 import type { Occupation, Team, User } from "@prisma/client";
 import { last } from "lodash";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useRefProxy } from "~/pages/admin";
 
 export function SimpleScore({ gameToken }: { gameToken: string }) {
   const scoreInputQuery = api.example.getScoreInput.useQuery({ gameToken }, { refetchInterval: 100_000 });
@@ -49,6 +50,7 @@ export function calcScore({
   });
 }
 
+type OccupationDuration = { userId: number; teamId: number | null; seconds: number };
 function getOccupationDurations({
   occupations,
   users,
@@ -58,7 +60,6 @@ function getOccupationDurations({
   users: User[];
   until: Date;
 }) {
-  type OccupationDuration = { userId: number; teamId: number; seconds: number };
   const occupationDurations: OccupationDuration[] = [];
 
   for (const user of users) {
@@ -102,21 +103,13 @@ export function useInterval(callback: () => void, intervalMs: number, enabled = 
   }, [callbackRef, intervalMs, enabled]);
 }
 
-export function useRefProxy<T>(value: T) {
-  const ref = useRef<T>(value);
-
-  ref.current = value;
-
-  return ref;
-}
-
-export function useFunctionRefProxy<F extends (...args: any) => any>(
-  handler: (...input: Parameters<F>) => ReturnType<F>
+export function useFunctionRefProxy<TArgs extends unknown[], TReturn>(
+  handler: (...input: TArgs) => TReturn
 ) {
   const savedHandler = useRefProxy(handler);
 
   return useCallback(
-    (...input: Parameters<F>) => {
+    (...input: TArgs) => {
       return savedHandler.current(...input);
     },
     [savedHandler]
