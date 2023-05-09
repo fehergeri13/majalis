@@ -38,6 +38,26 @@ export function calcScore({
   users: User[];
   until: Date;
 }) {
+  const durations = getOccupationDurations({occupations, users, until})
+
+  return teams.map((team) => {
+    const score = durations
+      .filter((item) => item.teamId === team.id)
+      .reduce((sum, curr) => sum + curr.seconds, 0);
+
+    return { team: team, score };
+  });
+}
+
+function getOccupationDurations({
+  occupations,
+  users,
+  until,
+}: {
+  occupations: Occupation[];
+  users: User[];
+  until: Date;
+}) {
   type OccupationDuration = { userId: number; teamId: number; seconds: number };
   const occupationDurations: OccupationDuration[] = [];
 
@@ -62,13 +82,7 @@ export function calcScore({
     }
   }
 
-  return teams.map((team) => {
-    const score = occupationDurations
-      .filter((item) => item.teamId === team.id)
-      .reduce((sum, curr) => sum + curr.seconds, 0);
-
-    return { team: team, score };
-  });
+  return occupationDurations;
 }
 
 function useNow(updateIntervalMs = 100, enabled = true) {
