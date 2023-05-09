@@ -3,16 +3,17 @@ import type { Occupation, Team, User } from "@prisma/client";
 import { last } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import { useRefProxy } from "~/pages/admin";
-import {isWithinInterval} from "date-fns";
+import { isWithinInterval } from "date-fns";
+import { SimpleChart } from "~/components/score/SimpleChart";
 
 export function SimpleScore({ gameToken }: { gameToken: string }) {
   const game = api.example.getGame.useQuery({gameToken})
   const scoreInputQuery = api.example.getScoreInput.useQuery({ gameToken }, { refetchInterval: 100_000 });
 
   const now = useNow();
-  const from = game.isSuccess ? game.data.startedAt ?? new Date() : new Date()
-  const until = game.isSuccess ? game.data.stoppedAt ?? new Date(now) : new Date(now)
-  const score = scoreInputQuery.isSuccess ? calcScore({ ...scoreInputQuery.data, start: from, end: until }) : [];
+  const start = game.isSuccess ? game.data.startedAt ?? new Date(now) : new Date(now)
+  const end = game.isSuccess ? game.data.stoppedAt ?? new Date(now+1) : new Date(now+1)
+  const score = scoreInputQuery.isSuccess ? calcScore({ ...scoreInputQuery.data, start, end }) : [];
 
   return (
     <>
@@ -28,6 +29,8 @@ export function SimpleScore({ gameToken }: { gameToken: string }) {
           </ul>
         </>
       )}
+
+      <SimpleChart gameToken={gameToken}/>
     </>
   );
 }
@@ -94,7 +97,7 @@ function getOccupationDurations({
   return occupationDurations;
 }
 
-function useNow(updateIntervalMs = 100, enabled = true) {
+export function useNow(updateIntervalMs = 100, enabled = true) {
   const [now, setNow] = useState(Date.now());
   useInterval(() => setNow(Date.now()), updateIntervalMs, enabled);
 
