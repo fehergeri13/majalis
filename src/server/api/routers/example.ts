@@ -283,9 +283,8 @@ export async function checkGameIsLive(prisma: PrismaClient, gameToken: string) {
     where: { gameToken: gameToken },
   });
 
-  // TODO turn on this check
-  // if(game.startedAt === null) throw new Error("Game not started yet")
-  // if(game.stoppedAt !== null) throw new Error("Game is already stopped")
+  if(game.startedAt === null) throw new Error("Game not started yet")
+  if(game.stoppedAt !== null) throw new Error("Game is already stopped")
 }
 
 export async function validateGameToken(prisma: PrismaClient, gameToken: string) {
