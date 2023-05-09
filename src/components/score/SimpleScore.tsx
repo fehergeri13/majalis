@@ -3,12 +3,16 @@ import type { Occupation, Team, User } from "@prisma/client";
 import { last } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import { useRefProxy } from "~/pages/admin";
+import {isWithinInterval} from "date-fns";
 
 export function SimpleScore({ gameToken }: { gameToken: string }) {
+  const game = api.example.getGame.useQuery({gameToken})
   const scoreInputQuery = api.example.getScoreInput.useQuery({ gameToken }, { refetchInterval: 100_000 });
 
   const now = useNow();
-  const score = scoreInputQuery.isSuccess ? calcScore({ ...scoreInputQuery.data, until: new Date(now) }) : [];
+  const from = game.isSuccess ? game.data.startedAt ?? new Date() : new Date()
+  const until = game.isSuccess ? game.data.stoppedAt ?? new Date(now) : new Date(now)
+  const score = scoreInputQuery.isSuccess ? calcScore({ ...scoreInputQuery.data, start: from, end: until }) : [];
 
   return (
     <>
@@ -32,14 +36,16 @@ export function calcScore({
   occupations,
   users,
   teams,
-  until,
+  start,
+  end,
 }: {
   occupations: Occupation[];
   teams: Team[];
   users: User[];
-  until: Date;
+  start: Date;
+  end: Date;
 }) {
-  const durations = getOccupationDurations({occupations, users, until})
+  const durations = getOccupationDurations({occupations, users, start, end})
 
   return teams.map((team) => {
     const score = durations
@@ -54,20 +60,22 @@ type OccupationDuration = { userId: number; teamId: number | null; seconds: numb
 function getOccupationDurations({
   occupations,
   users,
-  until,
+  start,
+  end,
 }: {
   occupations: Occupation[];
   users: User[];
-  until: Date;
+  start: Date;
+  end: Date;
 }) {
   const occupationDurations: OccupationDuration[] = [];
 
   for (const user of users) {
-    const userOccupations = occupations.filter((occupation) => occupation.userToken === user.userToken);
+    const userOccupations = occupations.filter((occupation) => occupation.userToken === user.userToken && isWithinInterval(occupation.timestamp, {start, end}));
     const lastOccupation = last(userOccupations);
 
     if (lastOccupation != null) {
-      userOccupations.push({ ...lastOccupation, timestamp: until });
+      userOccupations.push({ ...lastOccupation, timestamp: end });
 
       // iterate through except last item
       for (let i = 0; i < userOccupations.length - 1; i++) {
