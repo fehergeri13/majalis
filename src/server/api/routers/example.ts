@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { type PrismaClient } from "@prisma/client";
+import { last } from "lodash";
 
 export const exampleRouter = createTRPCRouter({
   hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => {
@@ -186,7 +187,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameIsLive(ctx.prisma, input.gameToken)
+      await checkGameIsLive(ctx.prisma, input.gameToken);
 
       await ctx.prisma.occupation.create({
         data: { gameToken: input.gameToken, userToken: input.userToken, teamNumber: input.teamNumber },
@@ -211,7 +212,69 @@ export const exampleRouter = createTRPCRouter({
       if (occupation == null) return null;
 
       const team = await ctx.prisma.team.findUniqueOrThrow({ where: { id: occupation.teamNumber } });
-      return team
+      return team;
+    }),
+  //endregion
+
+  //region getAllScore
+  getAllScore: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const game = await ctx.prisma.game.findUniqueOrThrow({
+        where: { gameToken: input.gameToken },
+      });
+
+      const users = await ctx.prisma.user.findMany({
+        where: { gameToken: input.gameToken },
+      });
+
+      const occupations = await ctx.prisma.occupation.findMany({
+        where: {
+          gameToken: input.gameToken,
+          timestamp: { gte: game.startedAt ?? new Date(0), lte: game.stoppedAt ?? new Date(9999999999999) },
+        },
+        orderBy: { timestamp: "asc" },
+      });
+
+      type OccupationDuration = { userId: number; teamId: number; seconds: number };
+      const occupationDurations: OccupationDuration[] = [];
+
+      for (const user of users) {
+        const userOccupations = occupations.filter((occupation) => occupation.userToken === user.userToken);
+        const lastOccupation = last(userOccupations);
+
+        if (lastOccupation != null) {
+          userOccupations.push({ ...lastOccupation, timestamp: new Date() });
+
+          // iterate through except last item
+          for (let i = 0; i < userOccupations.length - 1; i++) {
+            const current = userOccupations[i];
+            const next = userOccupations[i + 1];
+
+            if (current != null && next != null) {
+              const millis = next.timestamp.valueOf() - current.timestamp.valueOf();
+              const seconds = Math.floor(millis / 1000);
+              occupationDurations.push({ userId: user.id, teamId: current.teamNumber, seconds });
+            }
+          }
+        }
+      }
+
+      const teams = await ctx.prisma.team.findMany({
+        where: { gameToken: input.gameToken },
+      });
+
+      return teams.map((team) => {
+        const score = occupationDurations
+          .filter((item) => item.teamId === team.id)
+          .reduce((sum, curr) => sum + curr.seconds, 0);
+
+        return {team: team, score}
+      });
     }),
   //endregion
 });

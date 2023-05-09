@@ -6,6 +6,7 @@ import { usePusher } from "~/utils/pusher";
 import { ConnectionDot } from "~/components/ConnectionDot";
 import { TeamAdmin } from "~/components/teams/TeamAdmin";
 import { UserAdmin } from "~/components/users/UserAdmin";
+import { SimpleScore } from "~/components/score/SimpleScore";
 
 const Game: NextPage = () => {
   const router = useRouter();
@@ -69,6 +70,7 @@ const Game: NextPage = () => {
         )}
 
         {getGameQuery.isSuccess && <TeamAdmin gameToken={gameToken} />}
+        {getGameQuery.isSuccess && <SimpleScore gameToken={gameToken} />}
 
         {getGameQuery.isError && <>There is an error with this game token</>}
       </main>
