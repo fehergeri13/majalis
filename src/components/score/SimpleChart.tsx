@@ -41,8 +41,6 @@ export function SimpleChart({gameToken}: {gameToken: string}) {
   const game = api.example.getGame.useQuery({gameToken})
   const scoreInputQuery = api.example.getScoreInput.useQuery({ gameToken }, { refetchInterval: 100_000 });
 
-
-
   const now = useNow();
   const start = game.isSuccess ? game.data.startedAt ?? new Date(now) : new Date(now)
   const end = game.isSuccess ? game.data.stoppedAt ?? new Date(now+1) : new Date(now+1)

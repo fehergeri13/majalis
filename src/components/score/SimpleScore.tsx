@@ -22,9 +22,10 @@ export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: 
   usePusherBinding(channel, "client-base-update", () => scoreInputQuery.refetch())
 
   return (
-    <>
+    <div className="p-2 border border-gray-400 rounded">
       {scoreInputQuery.isSuccess && (
         <>
+          <h2 className="text-xl mb-2">Pontszám:</h2>
           <ul>
             {score.map((item) => (
               <li className="flex items-center gap-2" key={item.team.id}>
@@ -37,7 +38,7 @@ export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: 
       )}
 
       <SimpleChart gameToken={gameToken} />
-    </>
+    </div>
   );
 }
 

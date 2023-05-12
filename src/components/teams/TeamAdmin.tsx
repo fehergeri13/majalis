@@ -6,8 +6,8 @@ export function TeamAdmin({ gameToken }: { gameToken: string }) {
   const addTeamMutation = api.example.addTeam.useMutation();
 
   return (
-    <div className="py-2 border-y border-gray-400 my-8">
-      <h3 className="text-xl mb-4">Teams</h3>
+    <div className="p-2 border border-gray-400 rounded">
+      <h2 className="text-xl mb-4">Csapatok:</h2>
 
       <ul className="flex flex-col gap-2">
         {allTeamQuery.data?.map((team) => (
@@ -22,7 +22,7 @@ export function TeamAdmin({ gameToken }: { gameToken: string }) {
           await allTeamQuery.refetch();
         }}
       >
-        Add team
+        Csapat hozzáadása
       </button>
     </div>
   );

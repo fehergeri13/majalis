@@ -12,7 +12,8 @@ export function BaseAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
   const memberStore = usePusherPresenceState(presenceChannel);
 
   return (
-    <div>
+    <div className="border border-gray-400 rounded p-2">
+      <h2 className="text-xl mb-2">Bázisok:</h2>
       <ul className="flex flex-col gap-2">
         {allUserQuery.data?.length === 0 && <>Nincs még bázis hozzáadva</>}
         {allUserQuery.data?.map((user) => (
