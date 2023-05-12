@@ -234,7 +234,7 @@ export const exampleRouter = createTRPCRouter({
       await checkGameStatus(ctx.prisma, input.gameToken, "new")
 
       await ctx.prisma.team.create({
-        data: { gameToken: input.gameToken, name: "", color: "#14c91d" },
+        data: { gameToken: input.gameToken, name: "Névtelen csapat", color: "#14c91d" },
       });
     }),
   //endregion
