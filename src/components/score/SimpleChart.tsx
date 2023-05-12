@@ -1,16 +1,10 @@
 import React from "react";
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Tooltip,
-} from "chart.js";
+import { CategoryScale, Chart as ChartJS, LinearScale, LineElement, PointElement, Tooltip } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { api } from "~/utils/api";
 import { calcScore, useNow } from "~/components/score/SimpleScore";
-import { eachMinuteOfInterval, format } from "date-fns";
+import { addSeconds, differenceInSeconds, format } from "date-fns";
+import { range } from "lodash";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip);
 
@@ -24,7 +18,7 @@ export function SimpleChart({ gameToken }: { gameToken: string }) {
 
   if (!scoreInputQuery.isSuccess) return null;
 
-  const eachMinute = eachMinuteOfInterval({ start, end }).filter((time) => time.valueOf() > start.valueOf());
+  const eachMinute = eachOfInterval(start, end);
 
   const labels = eachMinute.map((date) => format(date, "HH: mm"));
   const scoreForMinutes = eachMinute.map((end) => calcScore({ ...scoreInputQuery.data, start, end }));
@@ -55,6 +49,7 @@ export function SimpleChart({ gameToken }: { gameToken: string }) {
             display: false,
           },
         },
+        animation: false
       }}
       data={{
         labels,
@@ -62,4 +57,12 @@ export function SimpleChart({ gameToken }: { gameToken: string }) {
       }}
     />
   );
+}
+
+function eachOfInterval(start: Date, end: Date) {
+  const secondDiff = differenceInSeconds(end, start);
+
+  const step = Math.max(1, Math.round(secondDiff / 40));
+
+  return [...range(0, secondDiff, step).map((second) => addSeconds(start, second))];
 }
