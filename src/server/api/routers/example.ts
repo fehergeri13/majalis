@@ -164,11 +164,7 @@ export const exampleRouter = createTRPCRouter({
       await ctx.prisma.game.update({
         where: { gameToken: input.gameToken },
         data: { status: "finished" },
-      });
-
-      await ctx.prisma.occupation.deleteMany({
-        where: { gameToken: input.gameToken },
-      });
+      })
     }),
   //endregion
 
