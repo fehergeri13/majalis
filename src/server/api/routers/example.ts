@@ -42,6 +42,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await checkGameStatus(ctx.prisma, input.gameToken, "new");
       return ctx.prisma.user.create({
         data: {
           gameToken: input.gameToken,
@@ -84,6 +85,8 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const user = await ctx.prisma.user.findUniqueOrThrow({where: {userToken: input.userToken}})
+      await checkGameStatus(ctx.prisma, user.gameToken, "new");
       await ctx.prisma.user.delete({
         where: {
           userToken: input.userToken,
@@ -232,7 +235,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameIsNotStarted(ctx.prisma, input.gameToken)
+      await checkGameStatus(ctx.prisma, input.gameToken, "new")
 
       await ctx.prisma.team.create({
         data: { gameToken: input.gameToken, name: "", color: "#14c91d" },
@@ -270,7 +273,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await validateGameToken(ctx.prisma, input.gameToken);
+      await checkGameStatus(ctx.prisma, input.gameToken, "new");
       await ctx.prisma.team.delete({ where: { id: input.id } });
     }),
   //endregion
@@ -310,7 +313,7 @@ export const exampleRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const user = await ctx.prisma.user.findUniqueOrThrow({ where: { userToken: input.userToken } });
-      await checkGameIsLive(ctx.prisma, user.gameToken);
+      await checkGameStatus(ctx.prisma, user.gameToken, "started");
 
       await ctx.prisma.occupation.create({
         data: { gameToken: user.gameToken, userToken: input.userToken, teamNumber: input.teamNumber },
@@ -385,23 +388,6 @@ export const exampleRouter = createTRPCRouter({
     }),
   //endregion
 });
-
-export async function checkGameIsLive(prisma: PrismaClient, gameToken: string) {
-  const game = await prisma.game.findUniqueOrThrow({
-    where: { gameToken: gameToken },
-  });
-
-  if (game.startedAt === null) throw new Error("Game not started yet");
-  if (game.stoppedAt !== null) throw new Error("Game is already stopped");
-}
-
-export async function checkGameIsNotStarted(prisma: PrismaClient, gameToken: string) {
-  const game = await prisma.game.findUniqueOrThrow({
-    where: { gameToken: gameToken },
-  });
-
-  if (game.startedAt !== null) throw new Error("Game already started");
-}
 
 export async function checkGameStatus(prisma: PrismaClient, gameToken: string, status: "new" | "started" | "paused" | "finished") {
   const game = await prisma.game.findUniqueOrThrow({
