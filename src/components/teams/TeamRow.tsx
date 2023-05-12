@@ -23,7 +23,7 @@ export function TeamRow({ team, onChange }: { team: Team; onChange: () => void }
               onChange();
             }}
           >
-            Update team
+            Mentés
           </button>
           <button
             className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
@@ -32,7 +32,7 @@ export function TeamRow({ team, onChange }: { team: Team; onChange: () => void }
               setColor(team.color);
             }}
           >
-            Undo changes
+            Visszaállít
           </button>
         </>
       )}
