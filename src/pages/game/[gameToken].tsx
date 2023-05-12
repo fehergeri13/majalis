@@ -16,7 +16,7 @@ const Game: NextPage = () => {
   const startGameMutation = api.example.startGame.useMutation();
   const stopGameMutation = api.example.stopGame.useMutation();
 
-  const { pusher, isConnected } = usePusher({ gameToken: gameToken, userToken: "admin", autoConnect: true });
+  const { pusher, isConnected } = usePusher({ type: "admin", authToken: gameToken, autoConnect: true });
 
   return (
     <>

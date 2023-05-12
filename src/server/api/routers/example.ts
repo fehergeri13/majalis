@@ -92,13 +92,11 @@ export const exampleRouter = createTRPCRouter({
   //endregion
 
   //region getUser
-  getUser: publicProcedure
-    .input(z.object({ gameToken: z.string(), userToken: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return ctx.prisma.user.findFirstOrThrow({
-        where: { gameToken: input.gameToken, userToken: input.userToken },
-      });
-    }),
+  getUser: publicProcedure.input(z.object({ userToken: z.string() })).query(async ({ ctx, input }) => {
+    return ctx.prisma.user.findUniqueOrThrow({
+      where: { userToken: input.userToken },
+    });
+  }),
   //endregion
 
   //region getAllUser
@@ -195,14 +193,25 @@ export const exampleRouter = createTRPCRouter({
   //region getAllTeam
   getAllTeam: publicProcedure
     .input(
-      z.object({
-        gameToken: z.string(),
-      })
+      z.union([
+        z.object({
+          userToken: z.string(),
+        }),
+        z.object({
+          gameToken: z.string(),
+        }),
+      ])
     )
     .query(async ({ ctx, input }) => {
-      return await ctx.prisma.team.findMany({
-        where: { gameToken: input.gameToken },
-      });
+      let gameToken;
+      if ("gameToken" in input) {
+        gameToken = input.gameToken;
+      } else {
+        const user = await ctx.prisma.user.findUniqueOrThrow({ where: { userToken: input.userToken } });
+        gameToken = user.gameToken;
+      }
+
+      return await ctx.prisma.team.findMany({ where: { gameToken } });
     }),
   //endregion
 
@@ -210,16 +219,16 @@ export const exampleRouter = createTRPCRouter({
   occupyBase: publicProcedure
     .input(
       z.object({
-        gameToken: z.string(),
         userToken: z.string(),
         teamNumber: z.union([z.number().positive(), z.null()]),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameIsLive(ctx.prisma, input.gameToken);
+      const user = await ctx.prisma.user.findUniqueOrThrow({ where: { userToken: input.userToken } });
+      await checkGameIsLive(ctx.prisma, user.gameToken);
 
       await ctx.prisma.occupation.create({
-        data: { gameToken: input.gameToken, userToken: input.userToken, teamNumber: input.teamNumber },
+        data: { gameToken: user.gameToken, userToken: input.userToken, teamNumber: input.teamNumber },
       });
     }),
   //endregion
@@ -228,13 +237,12 @@ export const exampleRouter = createTRPCRouter({
   getOccupation: publicProcedure
     .input(
       z.object({
-        gameToken: z.string(),
         userToken: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
       const occupation = await ctx.prisma.occupation.findFirst({
-        where: { gameToken: input.gameToken, userToken: input.userToken },
+        where: { userToken: input.userToken },
         orderBy: { timestamp: "desc" },
       });
 

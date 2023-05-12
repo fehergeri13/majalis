@@ -4,12 +4,10 @@ import { type TeamOrEmpty } from "~/components/teams/TeamOrEmpty";
 export function TeamSelectorItem({
   team,
   onChange,
-  gameToken,
   userToken,
 }: {
   team: TeamOrEmpty;
   onChange: () => void;
-  gameToken: string;
   userToken: string;
 }) {
   const occupyBaseMutation = api.example.occupyBase.useMutation();
@@ -20,7 +18,7 @@ export function TeamSelectorItem({
         className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
         style={{ backgroundColor: team.color }}
         onClick={async () => {
-          await occupyBaseMutation.mutateAsync({ gameToken, userToken, teamNumber: team.id });
+          await occupyBaseMutation.mutateAsync({ userToken, teamNumber: team.id });
           onChange();
         }}
       >

@@ -8,12 +8,12 @@ import { useFactoryRef } from "~/utils/useFactoryRef";
 Pusher.logToConsole = true;
 
 export function usePusher({
-  gameToken,
-  userToken,
+  type,
+  authToken,
   autoConnect = true,
 }: {
-  gameToken: string | undefined;
-  userToken: string | undefined;
+  type: "admin" | "user"
+  authToken: string | undefined;
   autoConnect?: boolean;
 }) {
   const [pusher, setPusher] = useState<null | Pusher>(null);
@@ -21,11 +21,12 @@ export function usePusher({
   const [isConnected, setConnected] = useState(false);
 
   const connect = useCallback(() => {
-    if (gameToken == null || userToken == null || userToken === "") {
-      console.warn("gameToken or userToken is empty", {
-        gameToken: gameToken,
-        userToken: userToken,
-      });
+    if (authToken == null) {
+      console.warn(`Warning: authToken is null.`);
+      return;
+    }
+    if (authToken === "") {
+      console.warn(`Warning: authToken is empty.`);
       return;
     }
 
@@ -42,7 +43,7 @@ export function usePusher({
       channelAuthorization: {
         endpoint: "/api/pusher/auth-channel",
         transport: "ajax",
-        params: { gameToken: gameToken, user_id: userToken },
+        params: { type: type, user_id: authToken },
       },
     });
 
@@ -60,7 +61,7 @@ export function usePusher({
 
     pusherRef.current = pusherClient;
     setPusher(pusherClient);
-  }, [pusher, gameToken, userToken]);
+  }, [pusher, type, authToken]);
 
   useEffect(() => {
     if (autoConnect && pusher == null) {
@@ -82,16 +83,14 @@ export type MemberStore = { members: string[]; isConnected: (userToken: string) 
 
 export function usePusherPresenceChannelStore(pusher: Pusher | null, channelName: `presence-${string}`) {
   const store = useFactoryRef(() => {
-    return createStore<MemberStore>(
-      (_set, _get, _api) => {
-        return {
-          members: [],
-          isConnected: (userToken: string) => {
-            return _get().members.includes(userToken);
-          },
-        };
-      }
-    );
+    return createStore<MemberStore>((_set, _get, _api) => {
+      return {
+        members: [],
+        isConnected: (userToken: string) => {
+          return _get().members.includes(userToken);
+        },
+      };
+    });
   }).current;
 
   useEffect(() => {

@@ -3,12 +3,12 @@ import { TeamSelectorItem } from "~/components/teams/TeamSelectorItem";
 import { type TeamOrEmpty } from "~/components/teams/TeamOrEmpty";
 import { OccupationDisplay } from "~/components/teams/OccupationDisplay";
 
-export function TeamSelector({ gameToken, userToken }: { gameToken: string; userToken: string }) {
-  const allTeamQuery = api.example.getAllTeam.useQuery({ gameToken });
-  const getOccupationQuery = api.example.getOccupation.useQuery({ gameToken, userToken });
+export function TeamSelector({ userToken }: { userToken: string }) {
+  const allTeamQuery = api.example.getAllTeam.useQuery({ userToken });
+  const getOccupationQuery = api.example.getOccupation.useQuery({ userToken });
 
   const teams: TeamOrEmpty[] = allTeamQuery.isSuccess
-    ? [...allTeamQuery.data, { gameToken, name: "Nincs elfoglalva", id: null, color: "#ddd" }]
+    ? [...allTeamQuery.data, { name: "Nincs elfoglalva", id: null, color: "#ddd" }]
     : [];
 
   return (
@@ -25,7 +25,6 @@ export function TeamSelector({ gameToken, userToken }: { gameToken: string; user
               key={team.id}
               team={team}
               onChange={getOccupationQuery.refetch}
-              gameToken={gameToken}
               userToken={userToken}
             />
           ))}

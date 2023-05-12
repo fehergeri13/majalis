@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { useRefProxy } from "~/pages/useRefProxy";
-import { generateRandomToken } from "~/pages/generateRandomToken";
+import { useRefProxy } from "~/utils/useRefProxy";
+import { generateRandomToken } from "~/utils/generateRandomToken";
 
 export function useGeneratedToken(
   queryKey: string,

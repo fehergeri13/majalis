@@ -9,42 +9,59 @@ import { OccupationDisplay } from "~/components/teams/OccupationDisplay";
 import { ConnectionDot } from "~/components/ConnectionDot";
 import { useState } from "react";
 
-export function BaseAdminItem({ user, memberStore, onChange }: { user: User, memberStore: MemberStore, onChange: () => void }) {
-  const [name, setName] = useState(user.userName)
+export function BaseAdminItem({
+  user,
+  memberStore,
+  onChange,
+}: {
+  user: User;
+  memberStore: MemberStore;
+  onChange: () => void;
+}) {
+  const [name, setName] = useState(user.userName);
 
-  const getOccupationQuery = api.example.getOccupation.useQuery({
-    gameToken: user.gameToken,
-    userToken: user.userToken
-  });
+  const getOccupationQuery = api.example.getOccupation.useQuery({ userToken: user.userToken });
 
   const deleteUserMutation = api.example.deleteUser.useMutation();
   const saveUserNameMutation = api.example.saveUserName.useMutation();
 
   return (
-    <li key={user.id} className="flex items-center gap-4 group hover:bg-blue-100 p-2">
+    <li key={user.id} className="group flex items-center gap-4 p-2 hover:bg-blue-100">
       <HiddenQrCode
-        data={`${getOrigin()}/game/${user.gameToken}/${user.userToken}`}
+        data={`${getOrigin()}/base/${user.userToken}`}
         width={200}
         height={200}
       />
-      <Link href={`/game/${user.gameToken}/${user.userToken}`} target="_blank" className="whitespace-nowrap">
+      <Link href={`/base/${user.userToken}`} target="_blank" className="whitespace-nowrap">
         Bázis megnyitása
         <IconExternalLink className="ml-2 inline-block h-5 w-5 text-gray-600" />
       </Link>
 
-      <input className="px-2 py-1 rounded" value={name} onChange={(e) => setName(e.target.value)} />
+      <input className="rounded px-2 py-1" value={name} onChange={(e) => setName(e.target.value)} />
 
-      {name !== user.userName && <>
-        <button
-          className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
-          onClick={async () => {
-          await saveUserNameMutation.mutateAsync({gameToken: user.gameToken, userToken: user.userToken, userName: name})
-          onChange()
-        }}>Mentés</button>
-        <button
-          className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
-          onClick={() => setName(user.userName)}>Visszaállít</button>
-      </>}
+      {name !== user.userName && (
+        <>
+          <button
+            className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
+            onClick={async () => {
+              await saveUserNameMutation.mutateAsync({
+                gameToken: user.gameToken,
+                userToken: user.userToken,
+                userName: name,
+              });
+              onChange();
+            }}
+          >
+            Mentés
+          </button>
+          <button
+            className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
+            onClick={() => setName(user.userName)}
+          >
+            Visszaállít
+          </button>
+        </>
+      )}
 
       <div className="grow"></div>
 
@@ -52,12 +69,17 @@ export function BaseAdminItem({ user, memberStore, onChange }: { user: User, mem
 
       {getOccupationQuery.isSuccess && <OccupationDisplay team={getOccupationQuery.data} />}
 
-      <button className="opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto  rounded border border-gray-200 bg-red-500 px-2 py-1 text-white hover:bg-red-600 active:bg-red-700" onClick={async () => {
-        if (confirm(`Do you want to delete user:${user.userName}`)) {
-          await deleteUserMutation.mutateAsync({ userToken: user.userToken });
-          onChange();
-        }
-      }}><IconTrash className="w-5 h-5" /></button>
+      <button
+        className="pointer-events-none rounded border border-gray-200  bg-red-500 px-2 py-1 text-white opacity-0 hover:bg-red-600 active:bg-red-700 group-hover:pointer-events-auto group-hover:opacity-100"
+        onClick={async () => {
+          if (confirm(`Do you want to delete user:${user.userName}`)) {
+            await deleteUserMutation.mutateAsync({ userToken: user.userToken });
+            onChange();
+          }
+        }}
+      >
+        <IconTrash className="h-5 w-5" />
+      </button>
     </li>
   );
 }
