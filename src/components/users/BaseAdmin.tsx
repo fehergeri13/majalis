@@ -2,19 +2,19 @@ import { api } from "~/utils/api";
 import { usePusherPresenceChannelStore } from "~/utils/pusher";
 import type Pusher from "pusher-js";
 import { generateRandomToken } from "~/utils/generateRandomToken";
-import { UserAdminItem } from "~/components/users/UserAdminItem";
+import { BaseAdminItem } from "~/components/users/BaseAdminItem";
 
-export function UserAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pusher | null }) {
+export function BaseAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pusher | null }) {
   const allUserQuery = api.example.getAllUser.useQuery({ gameToken });
   const addUserMutation = api.example.addUserToken.useMutation();
   const memberStore = usePusherPresenceChannelStore(pusher, "presence-majalis");
 
   return (
-    <>
-      <ul className="space-y-4">
-        {allUserQuery.data?.length === 0 && <>No user created yet</>}
+    <div>
+      <ul className="flex flex-col gap-2">
+        {allUserQuery.data?.length === 0 && <>Nincs még bázis hozzáadva</>}
         {allUserQuery.data?.map((user) => (
-          <UserAdminItem user={user} key={user.id} memberStore={memberStore} onChange={allUserQuery.refetch} />
+          <BaseAdminItem user={user} key={user.id} memberStore={memberStore} onChange={allUserQuery.refetch} />
         ))}
       </ul>
 
@@ -25,9 +25,9 @@ export function UserAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
           await allUserQuery.refetch();
         }}
       >
-        Generate user QR code
+        Bázis hozzáadása
       </button>
-    </>
+    </div>
   );
 }
 

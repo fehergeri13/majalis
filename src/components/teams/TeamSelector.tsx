@@ -8,7 +8,7 @@ export function TeamSelector({ gameToken, userToken }: { gameToken: string; user
   const getOccupationQuery = api.example.getOccupation.useQuery({ gameToken, userToken });
 
   const teams: TeamOrEmpty[] = allTeamQuery.isSuccess
-    ? [...allTeamQuery.data, { gameToken, name: "No occupation", id: null, color: "#ddd" }]
+    ? [...allTeamQuery.data, { gameToken, name: "Nincs elfoglalva", id: null, color: "#ddd" }]
     : [];
 
   return (

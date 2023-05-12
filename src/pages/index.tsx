@@ -6,6 +6,8 @@ import { generateRandomToken } from "~/utils/generateRandomToken";
 import { QrCodeImage } from "~/components/QrCodeImage";
 import { getOrigin } from "~/utils/getOrigin";
 import Link from "next/link";
+import { IconExternalLink, IconFlagFilled } from "@tabler/icons-react";
+import { HiddenQrCode } from "~/components/HiddenQrCode";
 
 const Home: NextPage = () => {
   const [gameToken, setGameToken] = useState<null | string>(null);
@@ -18,8 +20,14 @@ const Home: NextPage = () => {
         <meta name="description" content="Majalis app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="p-4">
-        <h2 className="text-xl my-4">Capture the flag game</h2>
+      <main className="space-y-4 p-4">
+        <h1 className="my-4 flex items-end text-3xl">
+          Capture the flag! <IconFlagFilled className="inline-block h-16 w-16" />
+        </h1>
+        <h2>
+          Üdv a <span>Capture the flag</span> játékban!
+        </h2>
+        <p className="my-4">A játék elkezdéséhez csinálni kell egy szobát, ahol majd lehet játszani.</p>
         <button
           className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
           onClick={async () => {
@@ -28,13 +36,16 @@ const Home: NextPage = () => {
             setGameToken(newToken);
           }}
         >
-          Generate game QR code
+          Játék szoba készítése
         </button>
 
         {gameToken != null && (
           <div className="flex items-center gap-4 rounded border p-4">
-            <QrCodeImage data={`${getOrigin()}/game/${gameToken ?? ""}`} />
-            <Link href={`/game/${gameToken}`}>Open game</Link>
+            <HiddenQrCode data={`${getOrigin()}/game/${gameToken ?? ""}`} />
+            <Link href={`/game/${gameToken}`}>
+              Szoba megnyitása
+              <IconExternalLink className="ml-2 inline-block h-5 w-5 text-gray-600" />
+            </Link>
           </div>
         )}
       </main>

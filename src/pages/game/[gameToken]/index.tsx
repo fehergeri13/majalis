@@ -5,7 +5,7 @@ import { api } from "~/utils/api";
 import { usePusher } from "~/utils/pusher";
 import { ConnectionDot } from "~/components/ConnectionDot";
 import { TeamAdmin } from "~/components/teams/TeamAdmin";
-import { UserAdmin } from "~/components/users/UserAdmin";
+import { BaseAdmin } from "~/components/users/BaseAdmin";
 import { SimpleScore } from "~/components/score/SimpleScore";
 
 const Game: NextPage = () => {
@@ -31,7 +31,7 @@ const Game: NextPage = () => {
           <ConnectionDot isConnected={isConnected} />
         </div>
 
-        {getGameQuery.isSuccess && <UserAdmin gameToken={gameToken} pusher={pusher} />}
+        {getGameQuery.isSuccess && <BaseAdmin gameToken={gameToken} pusher={pusher} />}
 
         {getGameQuery.data?.startedAt == null && (
           <button
