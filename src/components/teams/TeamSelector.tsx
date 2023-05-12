@@ -13,11 +13,16 @@ export function TeamSelector({ userToken }: { userToken: string }) {
 
   return (
     <>
-      <div className="my-8 border-y border-gray-400 py-2">
-        <h3 className="mb-4 text-xl">Current status</h3>
+      <div className="flex items-center gap-4">
+        <h3 className="text-xl">Jelenlegi állapot</h3>
         {getOccupationQuery.isSuccess && <OccupationDisplay team={getOccupationQuery.data} />}
+      </div>
 
-        <h3 className="my-4 text-xl">Teams</h3>
+
+      <div className="grow"/>
+
+      <div>
+        <h3 className="my-4 text-xl">Csapatok</h3>
 
         <ul className="flex flex-col gap-2">
           {teams.map((team) => (
@@ -33,4 +38,3 @@ export function TeamSelector({ userToken }: { userToken: string }) {
     </>
   );
 }
-

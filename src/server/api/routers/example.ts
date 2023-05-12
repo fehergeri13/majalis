@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { type PrismaClient } from "@prisma/client";
+import { omit } from "lodash";
 
 export const exampleRouter = createTRPCRouter({
   hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => {
@@ -93,9 +94,11 @@ export const exampleRouter = createTRPCRouter({
 
   //region getUser
   getUser: publicProcedure.input(z.object({ userToken: z.string() })).query(async ({ ctx, input }) => {
-    return ctx.prisma.user.findUniqueOrThrow({
+    const user = await ctx.prisma.user.findUniqueOrThrow({
       where: { userToken: input.userToken },
     });
+
+    return omit(user, "gameToken")
   }),
   //endregion
 

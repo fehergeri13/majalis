@@ -22,7 +22,7 @@ export function TeamSelectorItem({
           onChange();
         }}
       >
-        Select <span className="ml-2">{team.name}</span>
+        <span className="ml-2">{team.name}</span>
       </button>
     </li>
   );

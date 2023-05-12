@@ -5,7 +5,7 @@ export function ConnectionDot({ isConnected }: { isConnected: boolean }) {
         <div className={`absolute h-4 w-4 rounded-full ${isConnected ? "bg-green-500 " : "bg-gray-300"}`} />
       </div>
       <div className={`${isConnected ? "text-black" : "text-gray-500"}`}>
-        {isConnected ? "Connected" : "Offline"}
+        {isConnected ? "Csatlakozva" : "Offline"}
       </div>
     </div>
   );
