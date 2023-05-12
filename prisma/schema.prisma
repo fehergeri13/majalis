@@ -16,6 +16,7 @@ model Game {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   gameToken String    @unique
+  status    String    @default("new")
   startedAt DateTime?
   stoppedAt DateTime?
 }

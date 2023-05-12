@@ -118,24 +118,108 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await checkGameStatus(ctx.prisma, input.gameToken, "new")
+
       await ctx.prisma.game.update({
         where: { gameToken: input.gameToken },
-        data: { startedAt: new Date(), stoppedAt: null },
+        data: { startedAt: new Date(), stoppedAt: null, status: "started" },
       });
     }),
   //endregion
 
-  //region stopGame
-  stopGame: publicProcedure
+  //region resetGame
+  resetGame: publicProcedure
     .input(
       z.object({
         gameToken: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await checkGameStatus(ctx.prisma, input.gameToken, "paused")
+
       await ctx.prisma.game.update({
         where: { gameToken: input.gameToken },
-        data: { stoppedAt: new Date() },
+        data: { startedAt: null, stoppedAt: null, status: "new" },
+      });
+
+      await ctx.prisma.occupation.deleteMany({
+        where: { gameToken: input.gameToken },
+      });
+    }),
+  //endregion
+
+  //region finalizeGame
+  finalizeGame: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await checkGameStatus(ctx.prisma, input.gameToken, "paused")
+
+      await ctx.prisma.game.update({
+        where: { gameToken: input.gameToken },
+        data: { status: "finished" },
+      });
+
+      await ctx.prisma.occupation.deleteMany({
+        where: { gameToken: input.gameToken },
+      });
+    }),
+  //endregion
+
+  //region pauseGame
+  pauseGame: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await checkGameStatus(ctx.prisma, input.gameToken, "started")
+
+      await ctx.prisma.game.update({
+        where: { gameToken: input.gameToken },
+        data: { stoppedAt: new Date(), status: "paused" },
+      });
+    }),
+  //endregion
+
+  //region resumeGame
+  resumeGame: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const game = await ctx.prisma.game.findUniqueOrThrow({
+        where: { gameToken: input.gameToken },
+      })
+
+      await checkGameStatus(ctx.prisma, input.gameToken, "paused")
+      if(game.stoppedAt == null) throw new Error("previous line checkGameStatus should already check this")
+
+      const users = await ctx.prisma.user.findMany({where: {gameToken: input.gameToken}})
+
+      const occupations = await Promise.all(users.map(user => {
+        return ctx.prisma.occupation.findFirst({
+          where: { userToken: user.userToken },
+          orderBy: { timestamp: "desc" },
+        })
+      }))
+
+      for(const occupation of occupations) {
+        if(occupation != null && occupation.teamNumber != null) {
+          await ctx.prisma.occupation.create({data: {...occupation, teamNumber: null, timestamp: game.stoppedAt, id: undefined}})
+          await ctx.prisma.occupation.create({data: {...occupation, timestamp: new Date(), id: undefined}})
+        }
+      }
+
+      await ctx.prisma.game.update({
+        where: { gameToken: input.gameToken },
+        data: { stoppedAt: null, status: "started" },
       });
     }),
   //endregion
@@ -148,9 +232,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.prisma.game.findFirstOrThrow({
-        where: { gameToken: input.gameToken, startedAt: null },
-      });
+      await checkGameIsNotStarted(ctx.prisma, input.gameToken)
 
       await ctx.prisma.team.create({
         data: { gameToken: input.gameToken, name: "", color: "#14c91d" },
@@ -290,7 +372,7 @@ export const exampleRouter = createTRPCRouter({
 });
 
 export async function checkGameIsLive(prisma: PrismaClient, gameToken: string) {
-  const game = await prisma.game.findFirstOrThrow({
+  const game = await prisma.game.findUniqueOrThrow({
     where: { gameToken: gameToken },
   });
 
@@ -298,8 +380,56 @@ export async function checkGameIsLive(prisma: PrismaClient, gameToken: string) {
   if (game.stoppedAt !== null) throw new Error("Game is already stopped");
 }
 
+export async function checkGameIsNotStarted(prisma: PrismaClient, gameToken: string) {
+  const game = await prisma.game.findUniqueOrThrow({
+    where: { gameToken: gameToken },
+  });
+
+  if (game.startedAt !== null) throw new Error("Game already started");
+}
+
+export async function checkGameStatus(prisma: PrismaClient, gameToken: string, status: "new" | "started" | "paused" | "finished") {
+  const game = await prisma.game.findUniqueOrThrow({
+    where: { gameToken: gameToken },
+  });
+
+  if(game.status !== status) throw new Error(`Game status is invalid. Expected: ${status}, actual ${game.status}`)
+  if(status === "new") {
+    if (game.startedAt != null) {
+      throw new Error(`Invalid game status: ${status}. Game startedAt must be null`);
+    } else if (game.stoppedAt != null) {
+      throw new Error(`Invalid game status: ${status}. Game stoppedAt must be null`);
+    }
+  }
+
+  if(status === "started") {
+    if (game.startedAt == null) {
+      throw new Error(`Invalid game status: ${status}. Game startedAt must be Date`);
+    } else if (game.stoppedAt != null) {
+      throw new Error(`Invalid game status: ${status}. Game stoppedAt must be null`);
+    }
+  }
+
+  if(status === "paused") {
+    if (game.startedAt == null) {
+      throw new Error(`Invalid game status: ${status}. Game startedAt must be Date`);
+    } else if (game.stoppedAt == null) {
+      throw new Error(`Invalid game status: ${status}. Game stoppedAt must be Date`);
+    }
+  }
+
+  if(status === "finished") {
+    if (game.startedAt == null) {
+      throw new Error(`Invalid game status: ${status}. Game startedAt must be Date`);
+    } else if (game.stoppedAt == null) {
+      throw new Error(`Invalid game status: ${status}. Game stoppedAt must be Date`);
+    }
+  }
+}
+
 export async function validateGameToken(prisma: PrismaClient, gameToken: string) {
-  await prisma.game.findFirstOrThrow({
+  await prisma.game.findUniqueOrThrow({
     where: { gameToken: gameToken },
   });
 }
+
