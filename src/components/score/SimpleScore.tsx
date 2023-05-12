@@ -7,8 +7,10 @@ import { SimpleChart } from "~/components/score/SimpleChart";
 import { useRefProxy } from "~/utils/useRefProxy";
 import type Pusher from "pusher-js";
 import { usePusherBinding, usePusherChannel } from "~/utils/pusher";
+import { IconArrowsMaximize, IconArrowsMinimize } from "@tabler/icons-react";
 
 export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: Pusher | null }) {
+  const [isFullScreen, setFullScreen] = useState(false);
   const game = api.example.getGame.useQuery({ gameToken });
   const scoreInputQuery = api.example.getScoreInput.useQuery({ gameToken }, { refetchInterval: 100_000 });
 
@@ -22,10 +24,15 @@ export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: 
   usePusherBinding(channel, "client-base-update", () => scoreInputQuery.refetch())
 
   return (
-    <div className="p-2 border border-gray-400 rounded">
+    <div className={`p-2 border border-gray-400 rounded ${isFullScreen ? "fixed inset-0 bg-white" : "relative"}`}>
       {scoreInputQuery.isSuccess && (
         <>
           <h2 className="text-xl mb-2">Pontszám:</h2>
+          <button className="absolute top-0 right-0 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 rounded px-2 py-1" onClick={() => setFullScreen(state => !state)}>
+            {!isFullScreen && <IconArrowsMaximize className="w-8 h-8" />}
+            {isFullScreen && <IconArrowsMinimize className="w-8 h-8" />}
+
+          </button>
           <ul>
             {score.map((item) => (
               <li className="flex items-center gap-2" key={item.team.id}>
