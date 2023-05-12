@@ -111,7 +111,7 @@ function getOccupationDurations({
 
         if (current != null && next != null) {
           const millis = next.timestamp.valueOf() - current.timestamp.valueOf();
-          const seconds = Math.floor(millis / 100);
+          const seconds = Math.floor(millis / 1000);
           occupationDurations.push({ userId: user.id, teamId: current.teamNumber, seconds });
         }
       }
