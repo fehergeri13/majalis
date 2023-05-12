@@ -338,6 +338,21 @@ export const exampleRouter = createTRPCRouter({
     }),
   //endregion
 
+  //region getAllOccupation
+  getAllOccupation: publicProcedure
+    .input(
+      z.object({
+        gameToken: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await ctx.prisma.occupation.findMany({
+        where: { gameToken: input.gameToken },
+        orderBy: { timestamp: "desc" },
+      });
+    }),
+  //endregion
+
   //region getScoreInput
   getScoreInput: publicProcedure
     .input(
