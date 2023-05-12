@@ -24,7 +24,7 @@ export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: 
 
   return (
     <div
-      className={`flex flex-col rounded border border-gray-400 p-2 ${isFullScreen ? "fixed inset-0 bg-white" : "relative"}`}
+      className={`flex flex-col rounded border border-gray-400 p-2 ${isFullScreen ? "fixed inset-0 bg-white z-[100]" : "relative"}`}
     >
       {scoreInputQuery.isSuccess && (
         <>
@@ -39,7 +39,7 @@ export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: 
           <div className="flex items-center gap-4 w-max mx-auto text-2xl">
             {score.map((item) => (
               <div className="flex items-center px-2 py-1 border-gray-400 border rounded" key={item.team.id}>
-                <div className="px-2 py-1 rounded" style={{ backgroundColor: item.team.color }}>
+                <div className="px-2 py-1 rounded text-white" style={{ backgroundColor: item.team.color }}>
                   {item.team.name}
                 </div>
                 <div className="px-2 py-1 w-[100px]">{item.score}</div>

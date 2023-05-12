@@ -16,7 +16,7 @@ export function EventLog({ gameToken, pusher }: { gameToken: string; pusher: Pus
   return (
     <div
       className={`flex flex-col rounded border border-gray-400 p-2 ${
-        isFullScreen ? "fixed inset-0 bg-white" : "relative"
+        isFullScreen ? "fixed inset-0 bg-white z-[100]" : "relative"
       }`}
     >
       <button
@@ -28,7 +28,7 @@ export function EventLog({ gameToken, pusher }: { gameToken: string; pusher: Pus
       </button>
       <h2 className="mb-4 text-xl">Történések:</h2>
 
-      <div>
+      <div className="flex flex-col gap-1">
         {allOccupation.data?.map((item) => (
           <EventItem key={item.id} gameToken={gameToken} occupation={item} />
         ))}
@@ -48,6 +48,8 @@ export function EventItem({ gameToken, occupation }: { gameToken: string; occupa
   const teamName =
     allTeam?.data?.find((team) => team.id === occupation.teamNumber)?.name ?? "Ismeretlen csapat";
 
+  const backgroundColor = allTeam?.data?.find((team) => team.id === occupation.teamNumber)?.color ?? "transparent";
+
   const z2 = /^[aeiouöüóőúáűíé]/i.test(teamName) ? "z" : "";
 
   return (
@@ -62,10 +64,12 @@ export function EventItem({ gameToken, occupation }: { gameToken: string; occupa
         </>
       ) : (
         <>
-          <div className="flex items-center">
+          <div className="flex items-center gap-1">
             <div className="mr-4 w-[50px] ">{format(occupation.timestamp, "HH: mm")}</div>A{z}
             <div className="rounded border border-gray-200 px-1">{userName}</div>
-            bázist elfoglalta a{z2} {teamName} csapat
+            bázist elfoglalta a{z2}
+            <div className="rounded px-1 text-white" style={{backgroundColor}}>{teamName}</div>
+            csapat
           </div>
         </>
       )}

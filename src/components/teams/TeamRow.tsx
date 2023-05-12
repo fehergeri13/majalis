@@ -10,9 +10,14 @@ export function TeamRow({ team, onChange }: { team: Team; onChange: () => void }
   const deleteTeamMutation = api.example.deleteTeam.useMutation();
 
   return (
-    <li className="flex items-center gap-2 hover:bg-gray-100 py-1 px-1">
-      <input type="text" className="px-2 py-1 border border-gray-200 rounded " value={name} onChange={(e) => setName(e.target.value)} />
-      <input type="color" className="px-0 py-0 border border-gray-200 rounded " value={color} onChange={(e) => setColor(e.target.value)} />
+    <li className="flex items-center gap-2 hover:bg-gray-100 py-1 px-1 group">
+
+      <div className="flex items-center border border-gray-200 rounded" style={{backgroundColor: color}}>
+      <input type="text" className="px-2 py-1  text-white bg-transparent border-r border-white" value={name} onChange={(e) => setName(e.target.value)} />
+      <div className="hover:bg-white/20">
+        <input type="color" className="opacity-0 cursor-pointer" value={color} onChange={(e) => setColor(e.target.value)} />
+      </div>
+      </div>
 
       {(name !== team.name || color !== team.color) && (
         <>
@@ -38,7 +43,7 @@ export function TeamRow({ team, onChange }: { team: Team; onChange: () => void }
       )}
       <div className="grow" />
 
-      <button className="rounded border border-gray-200 bg-red-500 px-2 py-1 text-white hover:bg-red-600 active:bg-red-700" onClick={async () => {
+      <button className="hidden group-hover:block rounded border border-gray-200 bg-red-500 px-2 py-1 text-white hover:bg-red-600 active:bg-red-700" onClick={async () => {
         if (confirm(`Do you want to delete team:${team.name}`)) {
           await deleteTeamMutation.mutateAsync(team);
           onChange();
