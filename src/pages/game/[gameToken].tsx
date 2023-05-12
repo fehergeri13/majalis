@@ -49,6 +49,8 @@ export function StartStopGame({ gameToken }: { gameToken: string }) {
   const pauseGameMutation = api.example.pauseGame.useMutation();
   const resumeGameMutation = api.example.resumeGame.useMutation();
 
+  const scoreInputQuery = api.example.getScoreInput.useQuery({ gameToken });
+
   const getGameQuery = api.example.getGame.useQuery({ gameToken });
 
   return (
@@ -69,6 +71,7 @@ export function StartStopGame({ gameToken }: { gameToken: string }) {
                 onClick={async () => {
                   await startGameMutation.mutateAsync({ gameToken });
                   await getGameQuery.refetch();
+                  await scoreInputQuery.refetch();
                 }}
               >
                 Indítás
@@ -81,6 +84,7 @@ export function StartStopGame({ gameToken }: { gameToken: string }) {
                 onClick={async () => {
                   await pauseGameMutation.mutateAsync({ gameToken });
                   await getGameQuery.refetch();
+                  await scoreInputQuery.refetch();
                 }}
               >
                 Szünet
@@ -94,6 +98,7 @@ export function StartStopGame({ gameToken }: { gameToken: string }) {
                   if (confirm("Újra szeretnéd indítani a játékot? Az összes eddigi pontszám törlődik!")) {
                     await resetGameMutation.mutateAsync({ gameToken });
                     await getGameQuery.refetch();
+                    await scoreInputQuery.refetch();
                   }
                 }}
               >
@@ -107,6 +112,7 @@ export function StartStopGame({ gameToken }: { gameToken: string }) {
                 onClick={async () => {
                   await resumeGameMutation.mutateAsync({ gameToken });
                   await getGameQuery.refetch();
+                  await scoreInputQuery.refetch();
                 }}
               >
                 Folytatás
@@ -120,6 +126,7 @@ export function StartStopGame({ gameToken }: { gameToken: string }) {
                   if (confirm("Le akarod zárni a játékot? Utána többet már nem lehet elindítani!")) {
                     await finalizeGameMutation.mutateAsync({ gameToken });
                     await getGameQuery.refetch();
+                    await scoreInputQuery.refetch();
                   }
                 }}
               >

@@ -62,7 +62,7 @@ export function SimpleChart({ gameToken }: { gameToken: string }) {
 function eachOfInterval(start: Date, end: Date) {
   const secondDiff = differenceInSeconds(end, start);
 
-  const step = Math.max(1, Math.round(secondDiff / 40));
+  const step = Math.max(1, Math.round(secondDiff / 100));
 
   return [...range(0, secondDiff, step).map((second) => addSeconds(start, second))];
 }
