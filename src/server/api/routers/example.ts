@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { type PrismaClient } from "@prisma/client";
-import { omit } from "lodash";
+import { omit, sample } from "lodash";
 
 export const exampleRouter = createTRPCRouter({
   hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => {
@@ -85,7 +85,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.prisma.user.findUniqueOrThrow({where: {userToken: input.userToken}})
+      const user = await ctx.prisma.user.findUniqueOrThrow({ where: { userToken: input.userToken } });
       await checkGameStatus(ctx.prisma, user.gameToken, "new");
       await ctx.prisma.user.delete({
         where: {
@@ -101,7 +101,7 @@ export const exampleRouter = createTRPCRouter({
       where: { userToken: input.userToken },
     });
 
-    return omit(user, "gameToken")
+    return omit(user, "gameToken");
   }),
   //endregion
 
@@ -121,7 +121,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameStatus(ctx.prisma, input.gameToken, "new")
+      await checkGameStatus(ctx.prisma, input.gameToken, "new");
 
       await ctx.prisma.game.update({
         where: { gameToken: input.gameToken },
@@ -138,7 +138,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameStatus(ctx.prisma, input.gameToken, "paused")
+      await checkGameStatus(ctx.prisma, input.gameToken, "paused");
 
       await ctx.prisma.game.update({
         where: { gameToken: input.gameToken },
@@ -159,12 +159,12 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameStatus(ctx.prisma, input.gameToken, "paused")
+      await checkGameStatus(ctx.prisma, input.gameToken, "paused");
 
       await ctx.prisma.game.update({
         where: { gameToken: input.gameToken },
         data: { status: "finished" },
-      })
+      });
     }),
   //endregion
 
@@ -176,7 +176,7 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameStatus(ctx.prisma, input.gameToken, "started")
+      await checkGameStatus(ctx.prisma, input.gameToken, "started");
 
       await ctx.prisma.game.update({
         where: { gameToken: input.gameToken },
@@ -195,24 +195,30 @@ export const exampleRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const game = await ctx.prisma.game.findUniqueOrThrow({
         where: { gameToken: input.gameToken },
-      })
+      });
 
-      await checkGameStatus(ctx.prisma, input.gameToken, "paused")
-      if(game.stoppedAt == null) throw new Error("previous line checkGameStatus should already check this")
+      await checkGameStatus(ctx.prisma, input.gameToken, "paused");
+      if (game.stoppedAt == null) throw new Error("previous line checkGameStatus should already check this");
 
-      const users = await ctx.prisma.user.findMany({where: {gameToken: input.gameToken}})
+      const users = await ctx.prisma.user.findMany({ where: { gameToken: input.gameToken } });
 
-      const occupations = await Promise.all(users.map(user => {
-        return ctx.prisma.occupation.findFirst({
-          where: { userToken: user.userToken },
-          orderBy: { timestamp: "desc" },
+      const occupations = await Promise.all(
+        users.map((user) => {
+          return ctx.prisma.occupation.findFirst({
+            where: { userToken: user.userToken },
+            orderBy: { timestamp: "desc" },
+          });
         })
-      }))
+      );
 
-      for(const occupation of occupations) {
-        if(occupation != null && occupation.teamNumber != null) {
-          await ctx.prisma.occupation.create({data: {...occupation, teamNumber: null, timestamp: game.stoppedAt, id: undefined}})
-          await ctx.prisma.occupation.create({data: {...occupation, timestamp: new Date(), id: undefined}})
+      for (const occupation of occupations) {
+        if (occupation != null && occupation.teamNumber != null) {
+          await ctx.prisma.occupation.create({
+            data: { ...occupation, teamNumber: null, timestamp: game.stoppedAt, id: undefined },
+          });
+          await ctx.prisma.occupation.create({
+            data: { ...occupation, timestamp: new Date(), id: undefined },
+          });
         }
       }
 
@@ -231,10 +237,32 @@ export const exampleRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await checkGameStatus(ctx.prisma, input.gameToken, "new")
+      await checkGameStatus(ctx.prisma, input.gameToken, "new");
+
+      const colors = [
+        "#2c3e50",
+        "#34495e",
+        "#7f8c8d",
+        "#9b59b6",
+        "#c0392b",
+        "#d35400",
+        "#e74c3c",
+        "#f1c40f",
+        "#2ecc71",
+        "#2980b9",
+        "#27ae60",
+        "#16a085",
+        "#e67e22",
+        "#8e44ad",
+        "#c0392b",
+        "#e74c3c",
+        "#3498db",
+        "#f39c12",
+        "#1abc9c",
+      ];
 
       await ctx.prisma.team.create({
-        data: { gameToken: input.gameToken, name: "Névtelen csapat", color: "#14c91d" },
+        data: { gameToken: input.gameToken, name: "Névtelen csapat", color: sample(colors) ?? "#ff0000" },
       });
     }),
   //endregion
@@ -385,13 +413,18 @@ export const exampleRouter = createTRPCRouter({
   //endregion
 });
 
-export async function checkGameStatus(prisma: PrismaClient, gameToken: string, status: "new" | "started" | "paused" | "finished") {
+export async function checkGameStatus(
+  prisma: PrismaClient,
+  gameToken: string,
+  status: "new" | "started" | "paused" | "finished"
+) {
   const game = await prisma.game.findUniqueOrThrow({
     where: { gameToken: gameToken },
   });
 
-  if(game.status !== status) throw new Error(`Game status is invalid. Expected: ${status}, actual ${game.status}`)
-  if(status === "new") {
+  if (game.status !== status)
+    throw new Error(`Game status is invalid. Expected: ${status}, actual ${game.status}`);
+  if (status === "new") {
     if (game.startedAt != null) {
       throw new Error(`Invalid game status: ${status}. Game startedAt must be null`);
     } else if (game.stoppedAt != null) {
@@ -399,7 +432,7 @@ export async function checkGameStatus(prisma: PrismaClient, gameToken: string, s
     }
   }
 
-  if(status === "started") {
+  if (status === "started") {
     if (game.startedAt == null) {
       throw new Error(`Invalid game status: ${status}. Game startedAt must be Date`);
     } else if (game.stoppedAt != null) {
@@ -407,7 +440,7 @@ export async function checkGameStatus(prisma: PrismaClient, gameToken: string, s
     }
   }
 
-  if(status === "paused") {
+  if (status === "paused") {
     if (game.startedAt == null) {
       throw new Error(`Invalid game status: ${status}. Game startedAt must be Date`);
     } else if (game.stoppedAt == null) {
@@ -415,7 +448,7 @@ export async function checkGameStatus(prisma: PrismaClient, gameToken: string, s
     }
   }
 
-  if(status === "finished") {
+  if (status === "finished") {
     if (game.startedAt == null) {
       throw new Error(`Invalid game status: ${status}. Game startedAt must be Date`);
     } else if (game.stoppedAt == null) {
@@ -429,4 +462,3 @@ export async function validateGameToken(prisma: PrismaClient, gameToken: string)
     where: { gameToken: gameToken },
   });
 }
-
