@@ -1,7 +1,7 @@
 import { api } from "~/utils/api";
 import type { Occupation, Team, User } from "@prisma/client";
 import { last } from "lodash";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { isWithinInterval } from "date-fns";
 import { SimpleChart } from "~/components/score/SimpleChart";
 import { useRefProxy } from "~/utils/useRefProxy";
@@ -19,30 +19,37 @@ export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: 
   const end = game.isSuccess ? game.data.stoppedAt ?? new Date(now + 1) : new Date(now + 1);
   const score = scoreInputQuery.isSuccess ? calcScore({ ...scoreInputQuery.data, start, end }) : [];
 
-
-  const channel = usePusherChannel(pusher, "private-majalis")
-  usePusherBinding(channel, "client-base-update", () => scoreInputQuery.refetch())
+  const channel = usePusherChannel(pusher, "private-majalis");
+  usePusherBinding(channel, "client-base-update", () => scoreInputQuery.refetch());
 
   return (
-    <div className={`p-2 border border-gray-400 rounded ${isFullScreen ? "fixed inset-0 bg-white" : "relative"}`}>
+    <div
+      className={`flex flex-col rounded border border-gray-400 p-2 ${isFullScreen ? "fixed inset-0 bg-white" : "relative"}`}
+    >
       {scoreInputQuery.isSuccess && (
         <>
-          <h2 className="text-xl mb-2">Pontszám:</h2>
-          <button className="absolute top-0 right-0 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 rounded px-2 py-1" onClick={() => setFullScreen(state => !state)}>
-            {!isFullScreen && <IconArrowsMaximize className="w-8 h-8" />}
-            {isFullScreen && <IconArrowsMinimize className="w-8 h-8" />}
-
+          {!isFullScreen && <h2 className="mb-2 text-xl">Pontszám:</h2>}
+          <button
+            className="absolute right-0 top-0 rounded bg-gray-200 px-2 py-1 hover:bg-gray-300 active:bg-gray-400"
+            onClick={() => setFullScreen((state) => !state)}
+          >
+            {!isFullScreen && <IconArrowsMaximize className="h-8 w-8" />}
+            {isFullScreen && <IconArrowsMinimize className="h-8 w-8" />}
           </button>
-          <ul>
+          <div className="flex items-center gap-4 w-max mx-auto text-2xl">
             {score.map((item) => (
-              <li className="flex items-center gap-2" key={item.team.id}>
-                <div>team: {item.team.name}</div>
-                <div>score: {item.score}</div>
-              </li>
+              <div className="flex items-center px-2 py-1 border-gray-400 border rounded" key={item.team.id}>
+                <div className="px-2 py-1 rounded" style={{ backgroundColor: item.team.color }}>
+                  {item.team.name}
+                </div>
+                <div className="px-2 py-1 w-[100px]">{item.score}</div>
+              </div>
             ))}
-          </ul>
+          </div>
         </>
       )}
+
+      <div className="grow"/>
 
       <SimpleChart gameToken={gameToken} />
     </div>
