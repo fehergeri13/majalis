@@ -1,5 +1,5 @@
 import { api } from "~/utils/api";
-import { usePusherPresenceChannelStore } from "~/utils/pusher";
+import { usePusherChannel, usePusherPresenceState } from "~/utils/pusher";
 import type Pusher from "pusher-js";
 import { generateRandomToken } from "~/utils/generateRandomToken";
 import { BaseAdminItem } from "~/components/users/BaseAdminItem";
@@ -7,7 +7,9 @@ import { BaseAdminItem } from "~/components/users/BaseAdminItem";
 export function BaseAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pusher | null }) {
   const allUserQuery = api.example.getAllUser.useQuery({ gameToken });
   const addUserMutation = api.example.addUserToken.useMutation();
-  const memberStore = usePusherPresenceChannelStore(pusher, "presence-majalis");
+
+  const presenceChannel = usePusherChannel(pusher, "presence-majalis")
+  const memberStore = usePusherPresenceState(presenceChannel);
 
   return (
     <div>

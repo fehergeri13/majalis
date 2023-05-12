@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
-import { usePusher, usePusherChannel, usePusherPresenceChannelStore } from "~/utils/pusher";
+import { usePusher, usePusherChannel } from "~/utils/pusher";
 import { ConnectionDot } from "~/components/ConnectionDot";
 import { TeamSelector } from "~/components/teams/TeamSelector";
 
@@ -13,7 +13,7 @@ const User: NextPage = () => {
   const getUserQuery = api.example.getUser.useQuery({ userToken }, { enabled: userToken != null });
 
   const { pusher, isConnected } = usePusher({ type: "user", authToken: userToken });
-  usePusherPresenceChannelStore(pusher, "presence-majalis");
+  usePusherChannel(pusher, "presence-majalis")
   const channel = usePusherChannel(pusher, "private-majalis")
 
   return (

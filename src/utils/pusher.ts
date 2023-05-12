@@ -5,29 +5,29 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useFactoryRef } from "~/utils/useFactoryRef";
 import { useFunctionRefProxy } from "~/components/score/SimpleScore";
 
-// Enable pusher logging - don't include this in production
-Pusher.logToConsole = true;
-
 export function usePusher({
   type,
   authToken,
   autoConnect = true,
 }: {
-  type: "admin" | "user"
+  type: "admin" | "user";
   authToken: string | undefined;
   autoConnect?: boolean;
 }) {
+  // Enable pusher logging - don't include this in production
+  Pusher.logToConsole = env.NEXT_PUBLIC_NODE_ENV === "development";
+
   const [pusher, setPusher] = useState<null | Pusher>(null);
   const pusherRef = useRef<null | Pusher>(null);
   const [isConnected, setConnected] = useState(false);
 
   const connect = useCallback(() => {
     if (authToken == null) {
-      console.warn(`Warning: authToken is null.`);
+      if(env.NEXT_PUBLIC_NODE_ENV === "development") console.warn(`Warning: authToken is null.`);
       return;
     }
     if (authToken === "") {
-      console.warn(`Warning: authToken is empty.`);
+      if(env.NEXT_PUBLIC_NODE_ENV === "development") console.warn(`Warning: authToken is empty.`);
       return;
     }
 
@@ -56,9 +56,11 @@ export function usePusher({
       setConnected(false);
     });
 
-    pusherClient.connection.bind_global((...args: any[]) => {
-      console.log("CON GLOBAL", args);
-    });
+    if (env.NEXT_PUBLIC_NODE_ENV === "development") {
+      pusherClient.connection.bind_global((...args: any[]) => {
+        console.log("CON GLOBAL", args);
+      });
+    }
 
     pusherRef.current = pusherClient;
     setPusher(pusherClient);
@@ -82,7 +84,7 @@ export function usePusher({
 
 export type MemberStore = { members: string[]; isConnected: (userToken: string) => boolean };
 
-export function usePusherPresenceChannelStore(pusher: Pusher | null, channelName: `presence-${string}`) {
+export function usePusherPresenceState(presenceChannel: PresenceChannel | null) {
   const store = useFactoryRef(() => {
     return createStore<MemberStore>((_set, _get, _api) => {
       return {
@@ -94,48 +96,52 @@ export function usePusherPresenceChannelStore(pusher: Pusher | null, channelName
     });
   }).current;
 
-  const presenceChannel = usePusherChannel(pusher, channelName)
-
-  function updateMembers() {
-    if(presenceChannel == null) return;
+  const updateMembers = useCallback(() => {
+    if (presenceChannel == null) return;
     const members = presenceChannel.members.members as Record<string, { name: string }>;
-    console.log("presenceChannel.members", presenceChannel.members);
-
     store.setState(() => ({
       members: Object.keys(members),
     }));
-  }
+  }, [presenceChannel, store]);
 
-  usePusherBinding(presenceChannel, "pusher:subscription_succeeded", updateMembers)
-  usePusherBinding(presenceChannel, "pusher:member_added", updateMembers)
-  usePusherBinding(presenceChannel, "pusher:member_removed", updateMembers)
+  usePusherBinding(presenceChannel, "pusher:subscription_succeeded", updateMembers);
+  usePusherBinding(presenceChannel, "pusher:member_added", updateMembers);
+  usePusherBinding(presenceChannel, "pusher:member_removed", updateMembers);
 
   return useStore(store);
 }
 
+type CorrectChannel<TChannelName extends string> = TChannelName extends `presence-${string}`
+  ? PresenceChannel
+  : Channel;
 
-type CorrectChannel<TChannelName extends string> = TChannelName extends `presence-${string}` ? PresenceChannel : Channel;
-
-export function usePusherChannel<TChannelName extends string>(pusher: Pusher | null, channelName: TChannelName): CorrectChannel<TChannelName> | null {
-  const channel = useRef<Channel | null>(null)
+export function usePusherChannel<TChannelName extends string>(
+  pusher: Pusher | null,
+  channelName: TChannelName
+): CorrectChannel<TChannelName> | null {
+  const channel = useRef<Channel | null>(null);
 
   useEffect(() => {
     if (pusher == null) return;
     channel.current = pusher.subscribe(channelName);
-  }, [pusher, channelName])
+  }, [pusher, channelName]);
 
   return channel.current as CorrectChannel<TChannelName> | null;
 }
 
-export function usePusherBinding(channel: Channel | null, eventName: string, onEvent: (data: unknown) => void) {
-  const handler = useFunctionRefProxy(onEvent)
+export function usePusherBinding(
+  channel: Channel | null,
+  eventName: string,
+  onEvent: (data: unknown) => void
+) {
+  const handler = useFunctionRefProxy(onEvent);
 
   useEffect(() => {
-    if(channel == null) return;
-    channel.bind(eventName, handler)
+    if (channel == null) return;
+    channel.bind(eventName, handler);
 
     return () => {
-      channel.unbind(eventName, handler)
-    }
-  }, [channel, eventName, handler])
+      channel.unbind(eventName, handler);
+    };
+  }, [channel, eventName, handler]);
 }
