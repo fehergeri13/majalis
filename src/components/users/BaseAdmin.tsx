@@ -14,7 +14,13 @@ export function BaseAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
       <ul className="flex flex-col gap-2">
         {allUserQuery.data?.length === 0 && <>Nincs még bázis hozzáadva</>}
         {allUserQuery.data?.map((user) => (
-          <BaseAdminItem user={user} key={user.id} memberStore={memberStore} onChange={allUserQuery.refetch} />
+          <BaseAdminItem
+            user={user}
+            key={user.id}
+            memberStore={memberStore}
+            onChange={allUserQuery.refetch}
+            pusher={pusher}
+          />
         ))}
       </ul>
 
@@ -30,4 +36,3 @@ export function BaseAdmin({ gameToken, pusher }: { gameToken: string; pusher: Pu
     </div>
   );
 }
-

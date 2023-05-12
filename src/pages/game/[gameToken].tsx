@@ -70,7 +70,7 @@ const Game: NextPage = () => {
         )}
 
         {getGameQuery.isSuccess && <TeamAdmin gameToken={gameToken} />}
-        {getGameQuery.isSuccess && <SimpleScore gameToken={gameToken} />}
+        {getGameQuery.isSuccess && <SimpleScore gameToken={gameToken} pusher={pusher} />}
 
         {getGameQuery.isError && <>There is an error with this game token</>}
       </main>

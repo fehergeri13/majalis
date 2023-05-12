@@ -1,5 +1,5 @@
 import { type User } from "@prisma/client";
-import { type MemberStore } from "~/utils/pusher";
+import { type MemberStore, usePusherBinding, usePusherChannel } from "~/utils/pusher";
 import { api } from "~/utils/api";
 import { HiddenQrCode } from "~/components/HiddenQrCode";
 import { getOrigin } from "~/utils/getOrigin";
@@ -8,15 +8,18 @@ import { IconExternalLink, IconTrash } from "@tabler/icons-react";
 import { OccupationDisplay } from "~/components/teams/OccupationDisplay";
 import { ConnectionDot } from "~/components/ConnectionDot";
 import { useState } from "react";
+import type Pusher from "pusher-js";
 
 export function BaseAdminItem({
   user,
   memberStore,
   onChange,
+  pusher
 }: {
   user: User;
   memberStore: MemberStore;
   onChange: () => void;
+  pusher: Pusher | null
 }) {
   const [name, setName] = useState(user.userName);
 
@@ -24,6 +27,9 @@ export function BaseAdminItem({
 
   const deleteUserMutation = api.example.deleteUser.useMutation();
   const saveUserNameMutation = api.example.saveUserName.useMutation();
+
+  const channel = usePusherChannel(pusher, "private-majalis")
+  usePusherBinding(channel, "client-base-update", () => getOccupationQuery.refetch())
 
   return (
     <li key={user.id} className="group flex items-center gap-4 p-2 hover:bg-blue-100">

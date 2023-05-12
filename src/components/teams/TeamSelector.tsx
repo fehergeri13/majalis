@@ -3,7 +3,7 @@ import { TeamSelectorItem } from "~/components/teams/TeamSelectorItem";
 import { type TeamOrEmpty } from "~/components/teams/TeamOrEmpty";
 import { OccupationDisplay } from "~/components/teams/OccupationDisplay";
 
-export function TeamSelector({ userToken }: { userToken: string }) {
+export function TeamSelector({ userToken, onChange }: { userToken: string; onChange: () => void }) {
   const allTeamQuery = api.example.getAllTeam.useQuery({ userToken });
   const getOccupationQuery = api.example.getOccupation.useQuery({ userToken });
 
@@ -18,8 +18,7 @@ export function TeamSelector({ userToken }: { userToken: string }) {
         {getOccupationQuery.isSuccess && <OccupationDisplay team={getOccupationQuery.data} />}
       </div>
 
-
-      <div className="grow"/>
+      <div className="grow" />
 
       <div>
         <h3 className="my-4 text-xl">Csapatok</h3>
@@ -29,7 +28,10 @@ export function TeamSelector({ userToken }: { userToken: string }) {
             <TeamSelectorItem
               key={team.id}
               team={team}
-              onChange={getOccupationQuery.refetch}
+              onChange={async () => {
+                await getOccupationQuery.refetch();
+                onChange()
+              }}
               userToken={userToken}
             />
           ))}

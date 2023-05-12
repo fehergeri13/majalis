@@ -5,15 +5,21 @@ import { useCallback, useEffect, useState } from "react";
 import { isWithinInterval } from "date-fns";
 import { SimpleChart } from "~/components/score/SimpleChart";
 import { useRefProxy } from "~/utils/useRefProxy";
+import type Pusher from "pusher-js";
+import { usePusherBinding, usePusherChannel } from "~/utils/pusher";
 
-export function SimpleScore({ gameToken }: { gameToken: string }) {
-  const game = api.example.getGame.useQuery({gameToken})
+export function SimpleScore({ gameToken, pusher }: { gameToken: string; pusher: Pusher | null }) {
+  const game = api.example.getGame.useQuery({ gameToken });
   const scoreInputQuery = api.example.getScoreInput.useQuery({ gameToken }, { refetchInterval: 100_000 });
 
   const now = useNow();
-  const start = game.isSuccess ? game.data.startedAt ?? new Date(now) : new Date(now)
-  const end = game.isSuccess ? game.data.stoppedAt ?? new Date(now+1) : new Date(now+1)
+  const start = game.isSuccess ? game.data.startedAt ?? new Date(now) : new Date(now);
+  const end = game.isSuccess ? game.data.stoppedAt ?? new Date(now + 1) : new Date(now + 1);
   const score = scoreInputQuery.isSuccess ? calcScore({ ...scoreInputQuery.data, start, end }) : [];
+
+
+  const channel = usePusherChannel(pusher, "private-majalis")
+  usePusherBinding(channel, "client-base-update", () => scoreInputQuery.refetch())
 
   return (
     <>
@@ -30,7 +36,7 @@ export function SimpleScore({ gameToken }: { gameToken: string }) {
         </>
       )}
 
-      <SimpleChart gameToken={gameToken}/>
+      <SimpleChart gameToken={gameToken} />
     </>
   );
 }
@@ -48,7 +54,7 @@ export function calcScore({
   start: Date;
   end: Date;
 }) {
-  const durations = getOccupationDurations({occupations, users, start, end})
+  const durations = getOccupationDurations({ occupations, users, start, end });
 
   return teams.map((team) => {
     const score = durations
@@ -74,7 +80,10 @@ function getOccupationDurations({
   const occupationDurations: OccupationDuration[] = [];
 
   for (const user of users) {
-    const userOccupations = occupations.filter((occupation) => occupation.userToken === user.userToken && isWithinInterval(occupation.timestamp, {start, end}));
+    const userOccupations = occupations.filter(
+      (occupation) =>
+        occupation.userToken === user.userToken && isWithinInterval(occupation.timestamp, { start, end })
+    );
     const lastOccupation = last(userOccupations);
 
     if (lastOccupation != null) {
@@ -114,9 +123,7 @@ export function useInterval(callback: () => void, intervalMs: number, enabled = 
   }, [callbackRef, intervalMs, enabled]);
 }
 
-export function useFunctionRefProxy<TArgs extends unknown[], TReturn>(
-  handler: (...input: TArgs) => TReturn
-) {
+export function useFunctionRefProxy<TArgs extends unknown[], TReturn>(handler: (...input: TArgs) => TReturn) {
   const savedHandler = useRefProxy(handler);
 
   return useCallback(

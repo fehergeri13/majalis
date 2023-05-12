@@ -27,13 +27,14 @@ async function validateUserToken(
   type: "admin" | "user",
   user_id: string
 ): Promise<boolean> {
-  if (channelName !== "presence-majalis") return false;
-
-  if(type === "admin") {
-    await prisma.game.findFirstOrThrow({ where: { gameToken: user_id } });
-  } else {
-    await prisma.user.findFirstOrThrow({ where: { userToken: user_id } });
+  if (channelName === "presence-majalis" || channelName === "private-majalis") {
+    if (type === "admin") {
+      await prisma.game.findFirstOrThrow({ where: { gameToken: user_id } });
+    } else {
+      await prisma.user.findFirstOrThrow({ where: { userToken: user_id } });
+    }
+    return true;
   }
 
-  return true;
+  return false;
 }

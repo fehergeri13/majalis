@@ -2,9 +2,9 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
-import { usePusher, usePusherPresenceChannelStore } from "~/utils/pusher";
-import { TeamSelector } from "~/components/teams/TeamSelector";
+import { usePusher, usePusherChannel, usePusherPresenceChannelStore } from "~/utils/pusher";
 import { ConnectionDot } from "~/components/ConnectionDot";
+import { TeamSelector } from "~/components/teams/TeamSelector";
 
 const User: NextPage = () => {
   const router = useRouter();
@@ -14,6 +14,7 @@ const User: NextPage = () => {
 
   const { pusher, isConnected } = usePusher({ type: "user", authToken: userToken });
   usePusherPresenceChannelStore(pusher, "presence-majalis");
+  const channel = usePusherChannel(pusher, "private-majalis")
 
   return (
     <>
@@ -32,7 +33,12 @@ const User: NextPage = () => {
               <ConnectionDot isConnected={isConnected} />
             </div>
             <div className="grow"/>
-            <TeamSelector userToken={userToken} />
+            <div className="grow"/>
+            <TeamSelector userToken={userToken} onChange={() => {
+              if(channel != null) {
+                channel.trigger("client-base-update", {})
+              }
+            }} />
           </div>
         )}
       </main>
