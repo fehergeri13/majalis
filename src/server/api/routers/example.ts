@@ -45,7 +45,7 @@ export const exampleRouter = createTRPCRouter({
         data: {
           gameToken: input.gameToken,
           userToken: input.userToken,
-          userName: "",
+          userName: "Névtelen",
         },
       });
     }),
