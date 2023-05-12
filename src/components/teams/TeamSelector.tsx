@@ -1,7 +1,7 @@
 import { api } from "~/utils/api";
-import { type Team } from "@prisma/client";
-
-type TeamOrEmpty = Override<Team, "id", number | null>;
+import { TeamSelectorItem } from "~/components/teams/TeamSelectorItem";
+import { type TeamOrEmpty } from "~/components/teams/TeamOrEmpty";
+import { OccupationDisplay } from "~/components/teams/OccupationDisplay";
 
 export function TeamSelector({ gameToken, userToken }: { gameToken: string; userToken: string }) {
   const allTeamQuery = api.example.getAllTeam.useQuery({ gameToken });
@@ -35,48 +35,3 @@ export function TeamSelector({ gameToken, userToken }: { gameToken: string; user
   );
 }
 
-export function TeamSelectorItem({
-  team,
-  onChange,
-  gameToken,
-  userToken,
-}: {
-  team: TeamOrEmpty;
-  onChange: () => void;
-  gameToken: string;
-  userToken: string;
-}) {
-  const occupyBaseMutation = api.example.occupyBase.useMutation();
-
-  return (
-    <li className="flex items-center gap-2">
-      <button
-        className="rounded border border-gray-200 bg-blue-500 px-2 py-1 text-white hover:bg-blue-600 active:bg-blue-700"
-        style={{ backgroundColor: team.color }}
-        onClick={async () => {
-          await occupyBaseMutation.mutateAsync({ gameToken, userToken, teamNumber: team.id });
-          onChange();
-        }}
-      >
-        Select <span className="ml-2">{team.name}</span>
-      </button>
-    </li>
-  );
-}
-
-export function OccupationDisplay({ team }: { team: Team | null }) {
-  return (
-    <>
-      {team == null && <div className="my-4 rounded bg-gray-200 px-4 py-2">No occupation</div>}
-      {team != null && (
-        <div className="my-4 rounded px-4 py-2 text-white" style={{ backgroundColor: team.color }}>
-          {team.name}
-        </div>
-      )}
-    </>
-  );
-}
-
-type Override<T, TKey extends keyof T, TValue> = {
-  [k in keyof T]: k extends TKey ? TValue : T[k];
-};

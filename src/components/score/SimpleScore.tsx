@@ -2,9 +2,9 @@ import { api } from "~/utils/api";
 import type { Occupation, Team, User } from "@prisma/client";
 import { last } from "lodash";
 import { useCallback, useEffect, useState } from "react";
-import { useRefProxy } from "~/pages/admin";
 import { isWithinInterval } from "date-fns";
 import { SimpleChart } from "~/components/score/SimpleChart";
+import { useRefProxy } from "~/utils/useRefProxy";
 
 export function SimpleScore({ gameToken }: { gameToken: string }) {
   const game = api.example.getGame.useQuery({gameToken})

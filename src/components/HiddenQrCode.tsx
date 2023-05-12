@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { QrCodeImage } from "~/pages/admin";
 import { IconQrcode } from "@tabler/icons-react";
+import { QrCodeImage } from "~/components/QrCodeImage";
 
 export function HiddenQrCode({
   data,
